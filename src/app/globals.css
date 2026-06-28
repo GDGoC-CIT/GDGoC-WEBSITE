@@ -120,3 +120,111 @@ input:focus, select:focus, textarea:focus, button:focus-visible {
   }
 }
 
+/* ============================================================
+   RESPONSIVE — Mobile (max-width: 768px)
+   ============================================================ */
+@media (max-width: 768px) {
+
+  /* Global section padding */
+  section {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  /* Stats grid: 4-col → 2-col */
+  [style*="grid-template-columns: repeat(4, 1fr)"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Any 2-col grid → 1 col */
+  [style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Any 3-col grid → 1 col */
+  [style*="grid-template-columns: repeat(3, 1fr)"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Events/gallery auto-fill cards: single column */
+  [style*="grid-template-columns: repeat(auto-fill, minmax(320px"] {
+    grid-template-columns: 1fr !important;
+  }
+  [style*="grid-template-columns: repeat(auto-fill, minmax(260px"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Domain tech cards: 2-col on mobile */
+  [style*="grid-template-columns: repeat(auto-fill, minmax(200px"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Section headers: stack label + link vertically */
+  [style*="justify-content: space-between"][style*="align-items: flex-end"] {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+
+  /* Admin / modal forms full width */
+  [style*="max-width: 480px"],
+  [style*="max-width: 560px"],
+  [style*="max-width: 600px"],
+  [style*="max-width: 640px"] {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* Kanban: stack columns vertically */
+  [style*="1fr 1fr 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Member cards on people page: 2-col on mobile */
+  [style*="grid-template-columns: repeat(auto-fill, minmax(240px"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  [style*="grid-template-columns: repeat(auto-fill, minmax(220px"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Dashboard stats: 4-col → 2-col */
+  [style*="repeat(4,"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Chapter highlights 2-col → 1-col */
+  [style*="grid-template-columns: 1fr 1fr"][style*="gap: 64px"] {
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
+  }
+
+  /* Reduce hero section padding */
+  [style*="padding: '80px 0 64px'"] {
+    padding: 48px 16px 40px !important;
+  }
+
+  /* People [batch] role group cards */
+  [style*="repeat(auto-fill, minmax(200px"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* ============================================================
+   RESPONSIVE — Tablet (769px–1024px)
+   ============================================================ */
+@media (min-width: 769px) and (max-width: 1024px) {
+
+  [style*="grid-template-columns: repeat(4, 1fr)"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  [style*="grid-template-columns: repeat(auto-fill, minmax(320px"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  [style*="grid-template-columns: 1fr 1fr"][style*="gap: 64px"] {
+    grid-template-columns: 1fr !important;
+    gap: 40px !important;
+  }
+}

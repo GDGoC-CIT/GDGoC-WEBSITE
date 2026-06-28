@@ -110,7 +110,7 @@ export default function HomePage() {
           </h1>
 
           <p style={{ fontSize: 16, color: '#5F6368', fontWeight: 500, marginBottom: 24, letterSpacing: '0.02em' }}>
-            Coimbatore Institute of Technol
+            Coimbatore Institute of Technology
           </p>
 
           {/* Animated tagline */}
@@ -173,7 +173,7 @@ export default function HomePage() {
           boxShadow: '0 8px 32px rgba(60,64,67,0.08)',
           display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
           overflow: 'hidden',
-        }}>
+        }} className="gdg-stats-grid">
           {[
             { icon: Users,   color: G.blue,   bg: '#E8F0FE', value: stats.members,  suffix: '+', label: 'Members'      },
             { icon: Calendar,color: G.red,    bg: '#FCE8E6', value: stats.events,   suffix: '+', label: 'Events Hosted'},
@@ -301,7 +301,7 @@ export default function HomePage() {
         borderTop: '1px solid rgba(60,64,67,0.08)', borderBottom: '1px solid rgba(60,64,67,0.08)',
         padding: '72px 24px',
       }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 64, alignItems: 'center' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 64, alignItems: 'center' }} className="gdg-highlights-grid">
 
           {/* Left: Featured Achievement */}
           <div>
@@ -424,11 +424,43 @@ export default function HomePage() {
         @keyframes pulse {
           0%, 100% { opacity: 1; } 50% { opacity: 0.5; }
         }
+
+        /* Mobile responsive overrides */
         @media (max-width: 768px) {
-          section > div[style*="grid-template-columns: 1fr 1fr"] {
+          .gdg-stats-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+          .gdg-highlights-grid {
+            grid-template-columns: 1fr !important;
+            gap: 32px !important;
+          }
+          /* Section header row → stack */
+          section > div > div[style*="space-between"] {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+          }
+          /* Events grid → 1 col */
+          section div[style*="minmax(320px"] {
             grid-template-columns: 1fr !important;
           }
-          section > div[style*="grid-template-columns: repeat(4, 1fr)"] {
+          /* Tech domains → 2 col */
+          section div[style*="minmax(200px"] {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+          /* CTA buttons: full width on mobile */
+          section div[style*="flexWrap: 'wrap'"] {
+            flex-direction: column;
+            align-items: stretch;
+          }
+          section div[style*="flexWrap: 'wrap'"] a,
+          section div[style*="flexWrap: 'wrap'"] button {
+            justify-content: center;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .gdg-stats-grid {
             grid-template-columns: repeat(2, 1fr) !important;
           }
         }
