@@ -9,8 +9,8 @@ import {
   X, ShieldAlert, KeyRound, CheckCircle2, UserPlus, Upload, Settings
 } from 'lucide-react';
 
-const BATCHES = ['2026–27', '2027–28', '2028–29'];
 const DEPARTMENTS = ['M.Sc.Software Systems','M.Sc.Data Science','M.Sc.Artificial Intelligence and Machine Learining','M.Sc.DCS','CSE', 'IT', 'ECE', 'EEE', 'MECH', 'CIVIL', 'AIDS', 'AIML'];
+
 const YEARS = ['I', 'II', 'III', 'IV', 'Staff'];
 
 export default function PeopleAdminPage() {
@@ -31,6 +31,11 @@ export default function PeopleAdminPage() {
   // Tab Manager State
   const [activeTab, setActiveTab] = useState<'list' | 'order'>('list');
   const [selectedAdminBatch, setSelectedAdminBatch] = useState('2026–27');
+  const [batches, setBatches] = useState<string[]>(['2026–27', '2027–28', '2028–29']);
+
+  // Dynamic Data States
+  const [roles, setRoles] = useState<any[]>([]);
+  const [badges, setBadges] = useState<any[]>([]);
 
   // Dashboard Data States
   const [people, setPeople] = useState<Person[]>([]);
@@ -46,6 +51,25 @@ export default function PeopleAdminPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPerson, setEditingPerson] = useState<Person | null>(null);
   
+  // Modals for Role, Badge, and Batch Management
+  const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
+  const [isBadgeModalOpen, setIsBadgeModalOpen] = useState(false);
+  const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
+
+  // Batch Creation Fields
+  const [startYear, setStartYear] = useState<string>('');
+  const [endYear, setEndYear] = useState<string>('');
+
+  // Role CRUD Fields
+  const [editingRole, setEditingRole] = useState<any | null>(null);
+  const [roleNameInput, setRoleNameInput] = useState('');
+
+  // Badge CRUD Fields
+  const [editingBadge, setEditingBadge] = useState<any | null>(null);
+  const [badgeNameInput, setBadgeNameInput] = useState('');
+  const [badgeColorInput, setBadgeColorInput] = useState('#1A73E8');
+  const [badgeIconInput, setBadgeIconInput] = useState('');
+
   // Form Fields
   const [customId, setCustomId] = useState('');
   const [name, setName] = useState('');
@@ -64,11 +88,13 @@ export default function PeopleAdminPage() {
   const [avatar, setAvatar] = useState('');
   const [verified, setVerified] = useState(false);
   const [isTeamLead, setIsTeamLead] = useState(false);
+  const [memberBadges, setMemberBadges] = useState<string[]>([]);
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
   
   // Feedback Messages
   const [formFeedback, setFormFeedback] = useState({ type: '', msg: '' });
   const [slugError, setSlugError] = useState('');
+
 
   // Slug utility: generate slug from name
   const nameToSlug = (n: string) =>
@@ -101,6 +127,19 @@ export default function PeopleAdminPage() {
     try {
       const data = await db.getPeople();
       setPeople(data);
+
+      // Dynamic batch discovery:
+      const uniqueBatches = Array.from(new Set(data.map(p => p.batch)));
+      let storedBatches: string[] = [];
+      if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem('gdg_custom_batches');
+        if (stored) storedBatches = JSON.parse(stored);
+      }
+      const combined = Array.from(new Set([...['2026–27', '2027–28', '2028–29'], ...uniqueBatches, ...storedBatches]));
+      
+      // Sort batches in ascending chronological order
+      combined.sort((a, b) => a.localeCompare(b));
+      setBatches(combined);
     } catch (err) {
       console.error('Failed to load admin people database:', err);
     } finally {
@@ -112,6 +151,25 @@ export default function PeopleAdminPage() {
     if (!isAuthenticated) return;
     loadPeople();
   }, [isAuthenticated]);
+
+  // Load roles & badges when selectedAdminBatch changes
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    async function loadBatchData() {
+      try {
+        const [loadedRoles, loadedBadges] = await Promise.all([
+          db.getRoles(selectedAdminBatch),
+          db.getBadges(selectedAdminBatch)
+        ]);
+        setRoles(loadedRoles);
+        setBadges(loadedBadges);
+      } catch (err) {
+        console.error("Failed to load roles or badges for batch:", err);
+      }
+    }
+    loadBatchData();
+  }, [selectedAdminBatch, isAuthenticated]);
+
 
   // When name changes in add mode, auto-suggest slug unless admin already typed one
   useEffect(() => {
@@ -221,6 +279,7 @@ export default function PeopleAdminPage() {
     setAvatar('');
     setVerified(false);
     setIsTeamLead(false);
+    setMemberBadges([]);
     setSlugManuallyEdited(false);
     setSlugError('');
     setFormFeedback({ type: '', msg: '' });
@@ -247,9 +306,11 @@ export default function PeopleAdminPage() {
     setAvatar(person.avatar || '');
     setVerified(person.verified || false);
     setIsTeamLead(person.is_team_lead || false);
+    setMemberBadges(person.badges || []);
     setFormFeedback({ type: '', msg: '' });
     setIsModalOpen(true);
   };
+
 
   // CRUD: Delete Member
   const handleDeletePerson = async (id: string, name: string) => {
@@ -329,8 +390,10 @@ export default function PeopleAdminPage() {
       phone: phone.trim() || undefined,
       avatar: avatar.trim(),
       verified,
-      is_team_lead: isTeamLead
+      is_team_lead: isTeamLead,
+      badges: memberBadges
     };
+
 
     try {
       if (editingPerson) {
@@ -358,7 +421,124 @@ export default function PeopleAdminPage() {
     }
   };
 
+  // Batch Creation Submit
+  const handleCreateBatchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const start = parseInt(startYear, 10);
+    const end = parseInt(endYear, 10);
+    if (isNaN(start) || isNaN(end)) {
+      alert("Please enter valid start and end years.");
+      return;
+    }
+    if (end !== start + 1) {
+      alert("End Year must be exactly Start Year + 1.");
+      return;
+    }
+    const batchName = `${start}–${end.toString().slice(-2)}`;
+    if (batches.includes(batchName)) {
+      alert(`Batch "${batchName}" already exists.`);
+      return;
+    }
+    const updated = [...batches, batchName].sort((a, b) => a.localeCompare(b));
+    setBatches(updated);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('gdg_custom_batches', JSON.stringify(updated));
+    }
+    setSelectedAdminBatch(batchName);
+    setIsBatchModalOpen(false);
+  };
+
+  // Role CRUD Actions
+  const handleAddRole = async () => {
+    if (!roleNameInput.trim()) return;
+    const newRole = {
+      id: `${selectedAdminBatch.replace(/–/g, '-')}-${roleNameInput.trim().replace(/\s+/g, '-').toLowerCase()}-${Date.now()}`,
+      batch: selectedAdminBatch,
+      name: roleNameInput.trim(),
+      display_order: roles.length
+    };
+    const updated = [...roles, newRole];
+    setRoles(updated);
+    setRoleNameInput('');
+    await db.saveRoles(selectedAdminBatch, updated);
+    
+    // Trigger orderedRoles refresh
+    const list = await db.getRoleOrder(selectedAdminBatch);
+    setOrderedRoles(list);
+  };
+
+  const handleDeleteRole = async (roleId: string) => {
+    const updated = roles.filter(r => r.id !== roleId).map((r, idx) => ({ ...r, display_order: idx }));
+    setRoles(updated);
+    await db.saveRoles(selectedAdminBatch, updated);
+    
+    const list = await db.getRoleOrder(selectedAdminBatch);
+    setOrderedRoles(list);
+  };
+
+  const handleEditRole = async (roleId: string, newName: string) => {
+    const updated = roles.map(r => r.id === roleId ? { ...r, name: newName.trim() } : r);
+    setRoles(updated);
+    await db.saveRoles(selectedAdminBatch, updated);
+    const list = await db.getRoleOrder(selectedAdminBatch);
+    setOrderedRoles(list);
+  };
+
+  const handleMoveRoleItem = async (index: number, direction: 'up' | 'down') => {
+    const nextIdx = direction === 'up' ? index - 1 : index + 1;
+    if (nextIdx < 0 || nextIdx >= roles.length) return;
+    const swapped = [...roles];
+    const temp = swapped[index];
+    swapped[index] = swapped[nextIdx];
+    swapped[nextIdx] = temp;
+    
+    const ordered = swapped.map((r, idx) => ({ ...r, display_order: idx }));
+    setRoles(ordered);
+    await db.saveRoles(selectedAdminBatch, ordered);
+    
+    const list = await db.getRoleOrder(selectedAdminBatch);
+    setOrderedRoles(list);
+  };
+
+  // Badge CRUD Actions
+  const handleAddBadge = async () => {
+    if (!badgeNameInput.trim()) return;
+    const newBadge = {
+      id: `badge-${Date.now()}`,
+      batch: selectedAdminBatch,
+      name: badgeNameInput.trim(),
+      color: badgeColorInput,
+      icon: badgeIconInput.trim() || undefined,
+      display_order: badges.length
+    };
+    const updated = [...badges, newBadge];
+    setBadges(updated);
+    setBadgeNameInput('');
+    setBadgeIconInput('');
+    await db.saveBadges(selectedAdminBatch, updated);
+  };
+
+  const handleDeleteBadge = async (badgeId: string) => {
+    const updated = badges.filter(b => b.id !== badgeId).map((b, idx) => ({ ...b, display_order: idx }));
+    setBadges(updated);
+    await db.saveBadges(selectedAdminBatch, updated);
+  };
+
+  const handleMoveBadgeItem = async (index: number, direction: 'up' | 'down') => {
+    const nextIdx = direction === 'up' ? index - 1 : index + 1;
+    if (nextIdx < 0 || nextIdx >= badges.length) return;
+    const swapped = [...badges];
+    const temp = swapped[index];
+    swapped[index] = swapped[nextIdx];
+    swapped[nextIdx] = temp;
+    
+    const ordered = swapped.map((b, idx) => ({ ...b, display_order: idx }));
+    setBadges(ordered);
+    await db.saveBadges(selectedAdminBatch, ordered);
+  };
+
   // Reordering Role Sections
+
   const handleMoveRole = async (index: number, direction: 'up' | 'down') => {
     const nextIdx = direction === 'up' ? index - 1 : index + 1;
     if (nextIdx < 0 || nextIdx >= orderedRoles.length) return;
@@ -539,20 +719,49 @@ export default function PeopleAdminPage() {
             </button>
           </div>
 
-          {/* Batch Selector (Controls active data batch) */}
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Active Batch context</span>
+          {/* Batch Selector & Management Buttons */}
+          <div className="flex items-center flex-wrap gap-2">
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Active Batch</span>
             <select
               value={selectedAdminBatch}
               onChange={(e) => setSelectedAdminBatch(e.target.value)}
-              className="px-3 py-1.5 bg-white border border-gray-250 rounded-xl text-xs font-bold text-gray-800 focus:outline-none focus:border-gdg-blue"
+              className="px-3 py-1.5 bg-white border border-gray-250 rounded-xl text-xs font-bold text-gray-800 focus:outline-none focus:border-gdg-blue bg-white"
             >
-              {BATCHES.map(b => (
+              {batches.map(b => (
                 <option key={b} value={b}>{b}</option>
               ))}
             </select>
+
+            <button
+              onClick={() => {
+                setStartYear('');
+                setEndYear('');
+                setIsBatchModalOpen(true);
+              }}
+              className="inline-flex items-center px-3 py-1.5 border border-gray-250 text-xs font-bold rounded-xl text-gray-600 bg-white hover:bg-gray-50 transition-colors shadow-2xs cursor-pointer"
+              title="Create a new batch"
+            >
+              + Create Batch
+            </button>
+
+            <button
+              onClick={() => setIsRoleModalOpen(true)}
+              className="inline-flex items-center px-3 py-1.5 border border-gray-250 text-xs font-bold rounded-xl text-gray-600 bg-white hover:bg-gray-50 transition-colors shadow-2xs cursor-pointer"
+              title="Manage roles for this batch"
+            >
+              Manage Roles
+            </button>
+
+            <button
+              onClick={() => setIsBadgeModalOpen(true)}
+              className="inline-flex items-center px-3 py-1.5 border border-gray-250 text-xs font-bold rounded-xl text-gray-600 bg-white hover:bg-gray-50 transition-colors shadow-2xs cursor-pointer"
+              title="Manage badges for this batch"
+            >
+              Manage Badges
+            </button>
           </div>
         </div>
+
 
         {/* ─── TAB 1: MEMBERS DIRECTORY LISTING ─── */}
         {activeTab === 'list' && (
@@ -899,14 +1108,28 @@ export default function PeopleAdminPage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Role Title</label>
-                  <input
-                    type="text"
-                    required
+                  <select
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
-                    placeholder="e.g. Development Team, Cloud Team"
-                    className="w-full px-4 py-2 border border-gray-250 rounded-xl text-xs focus:outline-none focus:border-gdg-blue"
-                  />
+                    className="w-full px-4 py-2 border border-gray-250 rounded-xl text-xs focus:outline-none focus:border-gdg-blue bg-white"
+                    required
+                  >
+                    <option value="">-- Select Role --</option>
+                    {roles.length > 0 ? (
+                      roles.map(r => (
+                        <option key={r.id} value={r.name}>{r.name}</option>
+                      ))
+                    ) : (
+                      [
+                        'Faculty Advisor', 'Secretary', 'Joint Secretary', 'Treasurer',
+                        'Development Team', 'Design Team', 'Cloud Team', 'AI Team',
+                        'Event Team', 'Media Team', 'Management Team', 'Cyber Security Team'
+                      ].map(r => (
+                        <option key={r} value={r}>{r}</option>
+                      ))
+                    )}
+                  </select>
+
                 </div>
 
                 <div>
@@ -916,9 +1139,10 @@ export default function PeopleAdminPage() {
                     onChange={(e) => setBatch(e.target.value)}
                     className="w-full px-4 py-2 border border-gray-250 rounded-xl text-xs focus:outline-none focus:border-gdg-blue"
                   >
-                    {BATCHES.map(b => (
+                    {batches.map(b => (
                       <option key={b} value={b}>{b}</option>
                     ))}
+
                   </select>
                 </div>
 
@@ -1051,19 +1275,53 @@ export default function PeopleAdminPage() {
                   </div>
                 </div>
 
-                {/* Verified Badge Check */}
-                <div className="flex items-center gap-2 pt-2">
-                  <input
-                    type="checkbox"
-                    id="verifiedCheck"
-                    checked={verified}
-                    onChange={(e) => setVerified(e.target.checked)}
-                    className="w-4 h-4 text-gdg-blue border-gray-250 rounded focus:ring-gdg-blue"
-                  />
-                  <label htmlFor="verifiedCheck" className="text-xs font-bold text-gray-700 cursor-pointer select-none">
-                    Assign Verified Coordinator Badge
-                  </label>
+                {/* Badges Multi-Select Checkboxes */}
+                <div className="pt-2">
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Assign Badges</label>
+                  {badges.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 bg-gray-50 border border-gray-200 rounded-xl">
+                      {badges.map(b => {
+                        const isChecked = memberBadges.includes(b.id);
+                        return (
+                          <label key={b.id} className="flex items-center gap-2 cursor-pointer p-1.5 hover:bg-white rounded-lg transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setMemberBadges([...memberBadges, b.id]);
+                                } else {
+                                  setMemberBadges(memberBadges.filter(id => id !== b.id));
+                                }
+                              }}
+                              className="w-4 h-4 text-gdg-blue border-gray-250 rounded focus:ring-gdg-blue"
+                            />
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border" style={{ borderColor: `${b.color}44`, backgroundColor: `${b.color}12`, color: b.color }}>
+                              {b.name}
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-[10px] text-gray-400 italic">No custom badges defined for this batch yet. Create some using the "Manage Badges" button.</p>
+                  )}
+                  
+                  {/* Keep verification option too for backward compatibility / badge mapping */}
+                  <div className="flex items-center gap-2 mt-3">
+                    <input
+                      type="checkbox"
+                      id="verifiedCheck"
+                      checked={verified}
+                      onChange={(e) => setVerified(e.target.checked)}
+                      className="w-4 h-4 text-gdg-blue border-gray-250 rounded focus:ring-gdg-blue"
+                    />
+                    <label htmlFor="verifiedCheck" className="text-xs font-bold text-gray-700 cursor-pointer select-none">
+                      Assign Verified Leader Badge
+                    </label>
+                  </div>
                 </div>
+
 
                 {/* Team Lead Toggle - only for non-static roles */}
                 {role.trim() && !['Faculty Advisor', 'Secretary', 'Joint Secretary', 'Treasurer'].includes(role.trim()) && (
@@ -1136,7 +1394,267 @@ export default function PeopleAdminPage() {
         </div>
       )}
 
+      {/* ─── BATCH CREATION MODAL ─── */}
+      {isBatchModalOpen && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl w-full max-w-[400px] border border-gray-150 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            <div className="p-6 border-b border-gray-150 flex justify-between items-center bg-gray-50">
+              <h3 className="text-sm font-black text-gray-800 uppercase tracking-wider">Create New Batch</h3>
+              <button onClick={() => setIsBatchModalOpen(false)} className="p-1 hover:bg-gray-200 rounded-full text-gray-400 hover:text-gray-600 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleCreateBatchSubmit} className="p-6 space-y-4">
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Start Year</label>
+                <input
+                  type="number"
+                  required
+                  placeholder="e.g. 2025"
+                  value={startYear}
+                  onChange={(e) => {
+                    setStartYear(e.target.value);
+                    const parsed = parseInt(e.target.value, 10);
+                    if (!isNaN(parsed)) setEndYear((parsed + 1).toString());
+                  }}
+                  className="w-full px-4 py-2.5 border border-gray-250 rounded-xl text-xs font-bold focus:outline-none focus:border-gdg-blue bg-white"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">End Year</label>
+                <input
+                  type="number"
+                  required
+                  placeholder="e.g. 2026"
+                  value={endYear}
+                  onChange={(e) => setEndYear(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gray-250 rounded-xl text-xs font-bold focus:outline-none focus:border-gdg-blue bg-white"
+                />
+              </div>
+              <p className="text-[10px] text-gray-400 leading-normal">
+                Batch will be generated in the format: <b>Start Year – End Year (Last two digits)</b>. Example: 2025–26.
+              </p>
+              <div className="pt-2 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsBatchModalOpen(false)}
+                  className="px-4 py-2 border border-gray-250 rounded-full text-xs font-bold text-gray-600 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-gdg-blue hover:bg-blue-700 text-white rounded-full text-xs font-bold shadow-sm"
+                >
+                  Create Batch
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ─── ROLE MANAGEMENT MODAL ─── */}
+      {isRoleModalOpen && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl w-full max-w-[500px] border border-gray-150 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[85vh]">
+            <div className="p-6 border-b border-gray-150 flex justify-between items-center bg-gray-50 flex-shrink-0">
+              <div>
+                <h3 className="text-sm font-black text-gray-800 uppercase tracking-wider">Manage Roles</h3>
+                <p className="text-[10px] text-gray-400 font-semibold mt-0.5">Batch: {selectedAdminBatch}</p>
+              </div>
+              <button onClick={() => setIsRoleModalOpen(false)} className="p-1 hover:bg-gray-200 rounded-full text-gray-400 hover:text-gray-600 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto space-y-4 flex-1">
+              {/* Add Role Form */}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Enter role name (e.g. AI Lead)"
+                  value={roleNameInput}
+                  onChange={(e) => setRoleNameInput(e.target.value)}
+                  className="flex-1 px-4 py-2 border border-gray-250 rounded-xl text-xs focus:outline-none focus:border-gdg-blue font-bold bg-white"
+                />
+                <button
+                  onClick={handleAddRole}
+                  className="px-4 py-2 bg-gdg-blue hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs flex-shrink-0"
+                >
+                  Add Role
+                </button>
+              </div>
+
+              {/* Roles List */}
+              <div className="space-y-2 mt-4">
+                <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Current Roles ({roles.length})</span>
+                {roles.length === 0 ? (
+                  <p className="text-xs text-gray-400 italic">No custom roles defined. Using defaults.</p>
+                ) : (
+                  <div className="border border-gray-200 rounded-2xl overflow-hidden divide-y divide-gray-150">
+                    {roles.map((r, index) => (
+                      <div key={r.id} className="flex items-center justify-between p-3 bg-white hover:bg-gray-50 transition-colors">
+                        <span className="text-xs font-bold text-gray-700">{r.name}</span>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => handleMoveRoleItem(index, 'up')}
+                            disabled={index === 0}
+                            className="p-1 hover:bg-gray-100 disabled:opacity-30 rounded text-gray-500"
+                          >
+                            <ArrowUp className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleMoveRoleItem(index, 'down')}
+                            disabled={index === roles.length - 1}
+                            className="p-1 hover:bg-gray-100 disabled:opacity-30 rounded text-gray-500"
+                          >
+                            <ArrowDown className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              const newName = prompt("Edit Role Name:", r.name);
+                              if (newName) handleEditRole(r.id, newName);
+                            }}
+                            className="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-[10px] font-bold text-gray-600"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (confirm(`Delete role "${r.name}"?`)) handleDeleteRole(r.id);
+                            }}
+                            className="p-1 hover:bg-red-50 text-gdg-red rounded"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="p-6 border-t border-gray-150 bg-gray-50 flex justify-end flex-shrink-0">
+              <button
+                onClick={() => setIsRoleModalOpen(false)}
+                className="px-5 py-2.5 bg-gray-700 hover:bg-gray-800 text-white rounded-full text-xs font-bold shadow-sm"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── BADGE MANAGEMENT MODAL ─── */}
+      {isBadgeModalOpen && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl w-full max-w-[500px] border border-gray-150 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[85vh]">
+            <div className="p-6 border-b border-gray-150 flex justify-between items-center bg-gray-50 flex-shrink-0">
+              <div>
+                <h3 className="text-sm font-black text-gray-800 uppercase tracking-wider">Manage Badges</h3>
+                <p className="text-[10px] text-gray-400 font-semibold mt-0.5">Batch: {selectedAdminBatch}</p>
+              </div>
+              <button onClick={() => setIsBadgeModalOpen(false)} className="p-1 hover:bg-gray-200 rounded-full text-gray-400 hover:text-gray-600 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto space-y-4 flex-1">
+              {/* Add Badge Form */}
+              <div className="bg-gray-50 p-4 border border-gray-200 rounded-2xl space-y-3">
+                <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Add New Badge</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <input
+                    type="text"
+                    placeholder="Badge Name (e.g. Speaker)"
+                    value={badgeNameInput}
+                    onChange={(e) => setBadgeNameInput(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-250 rounded-xl text-xs focus:outline-none focus:border-gdg-blue font-bold bg-white"
+                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="color"
+                      value={badgeColorInput}
+                      onChange={(e) => setBadgeColorInput(e.target.value)}
+                      className="w-10 h-8 border border-gray-250 rounded-xl cursor-pointer p-0 bg-transparent flex-shrink-0"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Icon Name (e.g. Star)"
+                      value={badgeIconInput}
+                      onChange={(e) => setBadgeIconInput(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-250 rounded-xl text-xs focus:outline-none focus:border-gdg-blue bg-white"
+                    />
+                  </div>
+                </div>
+                <button
+                  onClick={handleAddBadge}
+                  className="w-full py-2 bg-gdg-blue hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-xs"
+                >
+                  Create Badge
+                </button>
+              </div>
+
+              {/* Badges List */}
+              <div className="space-y-2 mt-4">
+                <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">Current Badges ({badges.length})</span>
+                {badges.length === 0 ? (
+                  <p className="text-xs text-gray-400 italic">No custom badges defined yet.</p>
+                ) : (
+                  <div className="border border-gray-200 rounded-2xl overflow-hidden divide-y divide-gray-150">
+                    {badges.map((b, index) => (
+                      <div key={b.id} className="flex items-center justify-between p-3 bg-white hover:bg-gray-50 transition-colors">
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold border" style={{ borderColor: `${b.color}44`, backgroundColor: `${b.color}12`, color: b.color }}>
+                            {b.name}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => handleMoveBadgeItem(index, 'up')}
+                            disabled={index === 0}
+                            className="p-1 hover:bg-gray-100 disabled:opacity-30 rounded text-gray-500"
+                          >
+                            <ArrowUp className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleMoveBadgeItem(index, 'down')}
+                            disabled={index === badges.length - 1}
+                            className="p-1 hover:bg-gray-100 disabled:opacity-30 rounded text-gray-500"
+                          >
+                            <ArrowDown className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteBadge(b.id)}
+                            className="p-1 hover:bg-red-50 text-gdg-red rounded"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-gray-150 bg-gray-50 flex justify-end flex-shrink-0">
+              <button
+                onClick={() => setIsBadgeModalOpen(false)}
+                className="px-5 py-2.5 bg-gray-700 hover:bg-gray-800 text-white rounded-full text-xs font-bold shadow-sm"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Footer />
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-﻿-- =============================================
+-- =============================================
 -- GDG on Campus CIT - Community Portal Schema
 -- RUN THE ENTIRE SCRIPT IN SUPABASE SQL EDITOR
 -- =============================================
@@ -10,7 +10,10 @@ DROP TABLE IF EXISTS tasks CASCADE;
 DROP TABLE IF EXISTS events CASCADE;
 DROP TABLE IF EXISTS achievements CASCADE;
 DROP TABLE IF EXISTS people CASCADE;
+DROP TABLE IF EXISTS roles CASCADE;
+DROP TABLE IF EXISTS badges CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
+
 
 -- STEP 2: CREATE TABLES
 
@@ -110,6 +113,27 @@ CREATE TABLE people (
   verified BOOLEAN DEFAULT false,
   is_team_lead BOOLEAN DEFAULT false,
   display_order INT DEFAULT 0,
+  badges TEXT[] DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Roles table
+CREATE TABLE roles (
+  id TEXT PRIMARY KEY,
+  batch TEXT NOT NULL,
+  name TEXT NOT NULL,
+  display_order INT DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Badges table
+CREATE TABLE badges (
+  id TEXT PRIMARY KEY,
+  batch TEXT NOT NULL,
+  name TEXT NOT NULL,
+  color TEXT NOT NULL,
+  icon TEXT,
+  display_order INT DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -123,6 +147,8 @@ ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE gallery ENABLE ROW LEVEL SECURITY;
 ALTER TABLE achievements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE people ENABLE ROW LEVEL SECURITY;
+ALTER TABLE roles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE badges ENABLE ROW LEVEL SECURITY;
 
 -- Open policies: allow all operations from anon key
 CREATE POLICY "Public full access users" ON users FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
@@ -132,6 +158,9 @@ CREATE POLICY "Public full access tasks" ON tasks FOR ALL TO anon, authenticated
 CREATE POLICY "Public full access gallery" ON gallery FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Public full access achievements" ON achievements FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Public full access people" ON people FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Public full access roles" ON roles FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Public full access badges" ON badges FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+
 
 -- STEP 4: SEED INITIAL DATA
 

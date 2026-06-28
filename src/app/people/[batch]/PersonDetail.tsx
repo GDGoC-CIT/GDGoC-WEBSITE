@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { db, Person } from '@/lib/db';
+import { db, Person, Badge } from '@/lib/db';
 import {
   Linkedin, Github, Mail, Globe, ShieldCheck,
   ChevronLeft, Phone, GraduationCap, Layers, FileText, CheckCircle2, Sparkles, ArrowLeft
@@ -98,6 +98,7 @@ export default function PersonDetail({ memberIdOverride, batchSlugOverride, onBa
   const resolvedMemberId = memberIdOverride || (params.memberId as string) || '';
 
   const [person, setPerson] = useState<Person | null>(null);
+  const [badgesMap, setBadgesMap] = useState<Map<string, Badge>>(new Map());
   const [loading, setLoading] = useState(true);
   const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 });
 
@@ -117,6 +118,13 @@ export default function PersonDetail({ memberIdOverride, batchSlugOverride, onBa
       try {
         const data = await db.getPersonById(resolvedMemberId);
         setPerson(data);
+        if (data) {
+          const batchForBadges = data.batch;
+          const badgeList = await db.getBadges(batchForBadges);
+          const map = new Map<string, Badge>();
+          badgeList.forEach(b => map.set(b.id, b));
+          setBadgesMap(map);
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -303,6 +311,29 @@ export default function PersonDetail({ memberIdOverride, batchSlugOverride, onBa
                     Batch {person.batch}
                   </span>
                 </div>
+                {/* All Custom Badges */}
+                {person.badges && person.badges.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
+                    {person.badges.map(badgeId => {
+                      const badge = badgesMap.get(badgeId);
+                      if (!badge) return null;
+                      return (
+                        <span key={badgeId} style={{
+                          fontSize: 11, fontWeight: 800,
+                          color: badge.color,
+                          background: `${badge.color}18`,
+                          border: `1px solid ${badge.color}44`,
+                          borderRadius: 999,
+                          padding: '3px 12px',
+                          letterSpacing: '0.04em',
+                        }}>
+                          {badge.icon && <span style={{ marginRight: 4 }}>{badge.icon}</span>}
+                          {badge.name}
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* About */}

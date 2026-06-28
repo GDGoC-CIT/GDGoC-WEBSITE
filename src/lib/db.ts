@@ -89,8 +89,28 @@ export interface Person {
   verified?: boolean;
   is_team_lead?: boolean;
   display_order?: number;
+  badges?: string[];
   created_at?: string;
 }
+
+export interface Role {
+  id: string;
+  batch: string;
+  name: string;
+  display_order: number;
+  created_at?: string;
+}
+
+export interface Badge {
+  id: string;
+  batch: string;
+  name: string;
+  color: string;
+  icon?: string;
+  display_order: number;
+  created_at?: string;
+}
+
 
 // Initial Mock Data
 const initialEvents: Event[] = [
@@ -1102,49 +1122,24 @@ class DatabaseService {
   }
 
   async getRoleOrder(batch: string): Promise<string[]> {
-    const defaultRoles = [
-      'Faculty Advisor',
-      'Secretary',
-      'Joint Secretary',
-      'Treasurer',
-      'Development Team',
-      'Design Team',
-      'Cloud Team',
-      'AI Team',
-      'Event Team',
-      'Media Team',
-      'Management Team',
-      'Cyber Security Team'
-    ];
-    
-    if (typeof window === 'undefined') return defaultRoles;
-    const stored = localStorage.getItem(`gdg_role_order_${batch}`);
-    if (stored) {
-      try {
-        return JSON.parse(stored);
-      } catch (e) {
-        return defaultRoles;
-      }
-    }
-    
-    // Fallback: build dynamic list from existing members to ensure all roles are covered
-    const people = await this.getPeople();
-    const batchRoles = Array.from(new Set(people.filter(p => p.batch === batch).map(p => p.role)));
-    
-    // Sort batchRoles prioritizing defaultRoles order, others at bottom
-    const combined = [...defaultRoles];
-    batchRoles.forEach(r => {
-      if (!combined.includes(r)) combined.push(r);
-    });
-    
-    return combined;
+    const rolesList = await this.getRoles(batch);
+    return rolesList.map(r => r.name);
   }
 
   async saveRoleOrder(batch: string, order: string[]): Promise<void> {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(`gdg_role_order_${batch}`, JSON.stringify(order));
-    }
+    const rolesList = await this.getRoles(batch);
+    const updated = order.map((name, idx) => {
+      const existing = rolesList.find(r => r.name === name);
+      return {
+        id: existing?.id || `${batch.replace(/–/g, '-')}-${name.replace(/\s+/g, '-').toLowerCase()}`,
+        batch,
+        name,
+        display_order: idx
+      };
+    });
+    await this.saveRoles(batch, updated);
   }
+
 
   async createPerson(person: Omit<Person, 'created_at'>): Promise<Person> {
     if (this.isMock) {
@@ -1215,6 +1210,63 @@ class DatabaseService {
     }
   }
 
+  async getRoles(batch: string): Promise<Role[]> {
+    if (this.isMock) {
+      if (typeof window === 'undefined') return [];
+      const stored = localStorage.getItem(`gdg_roles_${batch}`);
+      if (stored) return JSON.parse(stored);
+      const defaultRoles = [
+        'Faculty Advisor', 'Secretary', 'Joint Secretary', 'Treasurer',
+        'Development Team', 'Design Team', 'Cloud Team', 'AI Team',
+        'Event Team', 'Media Team', 'Management Team', 'Cyber Security Team'
+      ];
+      return defaultRoles.map((r, i) => ({ id: `r-${i}-${batch}`, batch, name: r, display_order: i }));
+    }
+    try {
+      const { data, error } = await supabase!.from('roles').select('*').eq('batch', batch).order('display_order');
+      if (error) throw error;
+      if (data && data.length > 0) return data;
+      
+      const defaultRoles = [
+        'Faculty Advisor', 'Secretary', 'Joint Secretary', 'Treasurer',
+        'Development Team', 'Design Team', 'Cloud Team', 'AI Team',
+        'Event Team', 'Media Team', 'Management Team', 'Cyber Security Team'
+      ];
+      const initialRoles: Role[] = defaultRoles.map((r, i) => ({ id: `${batch}-${r.replace(/\s+/g, '-').toLowerCase()}`, batch, name: r, display_order: i }));
+      await supabase!.from('roles').insert(initialRoles);
+      return initialRoles;
+    } catch (err) {
+      console.warn("Supabase getRoles failed, fallback to local:", err);
+      if (typeof window === 'undefined') return [];
+      const stored = localStorage.getItem(`gdg_roles_${batch}`);
+      if (stored) return JSON.parse(stored);
+      const defaultRoles = [
+        'Faculty Advisor', 'Secretary', 'Joint Secretary', 'Treasurer',
+        'Development Team', 'Design Team', 'Cloud Team', 'AI Team',
+        'Event Team', 'Media Team', 'Management Team', 'Cyber Security Team'
+      ];
+      return defaultRoles.map((r, i) => ({ id: `r-${i}-${batch}`, batch, name: r, display_order: i }));
+    }
+  }
+
+  async saveRoles(batch: string, roles: Role[]): Promise<void> {
+    if (this.isMock) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`gdg_roles_${batch}`, JSON.stringify(roles));
+      }
+      return;
+    }
+    try {
+      await supabase!.from('roles').delete().eq('batch', batch);
+      const { error } = await supabase!.from('roles').insert(roles);
+      if (error) throw error;
+    } catch (err) {
+      console.warn("Supabase saveRoles failed, saving to LocalStorage:", err);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`gdg_roles_${batch}`, JSON.stringify(roles));
+      }
+    }
+  }
   async deletePerson(id: string): Promise<void> {
     console.log("DatabaseService: deleting person with ID:", id);
     if (this.isMock) {
@@ -1235,10 +1287,50 @@ class DatabaseService {
       const people = await this.getPeople();
       const filtered = people.filter(p => p.id !== id);
       localStorage.setItem('gdg_people', JSON.stringify(filtered));
-      throw err; // propagate error so admin page displays alert feedback
+      throw err;
+    }
+  }
+
+  async getBadges(batch: string): Promise<Badge[]> {
+    if (this.isMock) {
+      if (typeof window === 'undefined') return [];
+      const stored = localStorage.getItem(`gdg_badges_${batch}`);
+      return stored ? JSON.parse(stored) : [];
+    }
+    try {
+      const { data, error } = await supabase!.from('badges').select('*').eq('batch', batch).order('display_order');
+      if (error) throw error;
+      return data || [];
+    } catch (err) {
+      console.warn("Supabase getBadges failed, fallback to local:", err);
+      if (typeof window === 'undefined') return [];
+      const stored = localStorage.getItem(`gdg_badges_${batch}`);
+      return stored ? JSON.parse(stored) : [];
+    }
+  }
+
+  async saveBadges(batch: string, badges: Badge[]): Promise<void> {
+    if (this.isMock) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`gdg_badges_${batch}`, JSON.stringify(badges));
+      }
+      return;
+    }
+    try {
+      await supabase!.from('badges').delete().eq('batch', batch);
+      if (badges.length > 0) {
+        const { error } = await supabase!.from('badges').insert(badges);
+        if (error) throw error;
+      }
+    } catch (err) {
+      console.warn("Supabase saveBadges failed, saving to LocalStorage:", err);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`gdg_badges_${batch}`, JSON.stringify(badges));
+      }
     }
   }
 }
+
 
 export const db = new DatabaseService();
 export const mockTeam = initialTeam;

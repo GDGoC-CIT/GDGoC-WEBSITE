@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { db, Person } from '@/lib/db';
+import { db, Person, Badge } from '@/lib/db';
 import { Linkedin, Github, Mail, Globe, ShieldCheck, ChevronDown, Users } from 'lucide-react';
 import PersonDetail from './PersonDetail';
 
@@ -27,7 +27,7 @@ function displayRole(person: Person): string {
 
 
 // ─── Member Card ──────────────────────────────────────────────────────────────
-function MemberCard({ person, batchSlug }: { person: Person; batchSlug: string }) {
+function MemberCard({ person, batchSlug, badgesMap }: { person: Person; batchSlug: string; badgesMap: Map<string, Badge> }) {
   const router = useRouter();
   const roleLabel = displayRole(person);
 
@@ -108,10 +108,33 @@ function MemberCard({ person, batchSlug }: { person: Person; batchSlug: string }
         <span style={{
           fontSize: 11, fontWeight: 600, color: '#5F6368',
           background: '#F1F3F4', borderRadius: 8, padding: '2px 10px',
-          marginBottom: 12, display: 'inline-block',
+          marginBottom: 6, display: 'inline-block',
         }}>
           {roleLabel}
         </span>
+
+        {/* First Custom Badge */}
+        {(() => {
+          const firstBadgeId = person.badges?.[0];
+          const badge = firstBadgeId ? badgesMap.get(firstBadgeId) : null;
+          if (!badge) return null;
+          return (
+            <span style={{
+              display: 'inline-block',
+              fontSize: 9, fontWeight: 800,
+              color: badge.color,
+              background: `${badge.color}18`,
+              border: `1px solid ${badge.color}44`,
+              borderRadius: 999,
+              padding: '2px 10px',
+              marginBottom: 10,
+              letterSpacing: '0.04em',
+            }}>
+              {badge.icon && <span style={{ marginRight: 3 }}>{badge.icon}</span>}
+              {badge.name}
+            </span>
+          );
+        })()}
 
         {/* Skills */}
         {person.skills && person.skills.length > 0 && (
@@ -181,6 +204,7 @@ export default function BatchPeoplePage() {
 
   const [people, setPeople] = useState<Person[]>([]);
   const [rolesOrder, setRolesOrder] = useState<string[]>([]);
+  const [badgesMap, setBadgesMap] = useState<Map<string, Badge>>(new Map());
   const [loading, setLoading] = useState(true);
   const [batchOpen, setBatchOpen] = useState(false);
 
@@ -189,12 +213,16 @@ export default function BatchPeoplePage() {
     async function load() {
       setLoading(true);
       try {
-        const [allPeople, orderList] = await Promise.all([
+        const [allPeople, orderList, badgeList] = await Promise.all([
           db.getPeople(),
-          db.getRoleOrder(batchName)
+          db.getRoleOrder(batchName),
+          db.getBadges(batchName)
         ]);
         setPeople(allPeople.filter(p => p.batch === batchName));
         setRolesOrder(orderList);
+        const map = new Map<string, Badge>();
+        badgeList.forEach(b => map.set(b.id, b));
+        setBadgesMap(map);
       } catch (err) {
         console.error('Failed to load batch directory:', err);
       } finally {
@@ -372,7 +400,7 @@ export default function BatchPeoplePage() {
                   gap: 24,
                 }}>
                   {members.map(person => (
-                    <MemberCard key={person.id} person={person} batchSlug={batchSlug} />
+                    <MemberCard key={person.id} person={person} batchSlug={batchSlug} badgesMap={badgesMap} />
                   ))}
                 </div>
               </section>
