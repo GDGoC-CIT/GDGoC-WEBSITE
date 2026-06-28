@@ -373,19 +373,19 @@ export default function BatchPeoplePage() {
             <p style={{ fontSize: 16, color: '#5F6368', fontWeight: 500 }}>No members registered for this batch.</p>
           </div>
         ) : (
-          <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
+          <div className="team-container">
             {grouped.map(([role, members]) => (
-              <section key={role} style={{ marginBottom: 64 }}>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 32 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                    <div style={{ height: 2, width: 32, background: 'linear-gradient(90deg, transparent, #DADCE0)' }} />
-                    <h2 style={{
+              <section key={role} style={{ marginBottom: 64 }} className="team-section">
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 32 }} className="section-header-container">
+                  <div className="section-title-wrapper" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8, maxWidth: '100%', justifyContent: 'center' }}>
+                    <div className="section-title-line-left" style={{ height: 2, width: 32, background: 'linear-gradient(90deg, transparent, #DADCE0)', flexShrink: 0 }} />
+                    <h2 className="section-title-text" style={{
                       fontSize: 15, fontWeight: 900, textTransform: 'uppercase',
-                      letterSpacing: '0.14em', color: '#202124',
+                      letterSpacing: '0.14em', color: '#202124', textAlign: 'center'
                     }}>{role}</h2>
-                    <div style={{ height: 2, width: 32, background: 'linear-gradient(90deg, #DADCE0, transparent)' }} />
+                    <div className="section-title-line-right" style={{ height: 2, width: 32, background: 'linear-gradient(90deg, #DADCE0, transparent)', flexShrink: 0 }} />
                   </div>
-                  <div style={{ display: 'flex', gap: 4 }}>
+                  <div style={{ display: 'flex', gap: 4 }} className="section-accent-bars">
                     {['#4285F4','#EA4335','#FBBC05','#34A853'].map((c, i) => (
                       <div key={i} style={{ width: 20, height: 2, borderRadius: 2, background: c }} />
                     ))}
@@ -398,7 +398,7 @@ export default function BatchPeoplePage() {
                   flexWrap: 'wrap',
                   justifyContent: 'center',
                   gap: 24,
-                }}>
+                }} className="team-cards-grid">
                   {members.map(person => (
                     <MemberCard key={person.id} person={person} batchSlug={batchSlug} badgesMap={badgesMap} />
                   ))}
@@ -413,6 +413,43 @@ export default function BatchPeoplePage() {
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .team-container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 0 24px;
+        }
+
+        @media (max-width: 768px) {
+          .section-title-line-left,
+          .section-title-line-right {
+            display: none !important;
+          }
+          .section-title-wrapper {
+            gap: 0px !important;
+            padding: 0 16px !important;
+          }
+          .section-title-text {
+            font-size: 13px !important;
+            letter-spacing: 0.1em !important;
+            line-height: 1.4 !important;
+          }
+          .team-container {
+            padding: 0 16px !important;
+          }
+          .team-section {
+            margin-bottom: 48px !important;
+          }
+        }
+
+        @media (max-width: 360px) {
+          .team-container {
+            padding: 0 8px !important;
+          }
+          .team-cards-grid {
+            gap: 16px !important;
+          }
+        }
       `}</style>
     </div>
   );
