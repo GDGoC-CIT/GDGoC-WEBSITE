@@ -36,8 +36,8 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/team" className="text-sm text-gray-500 hover:text-gdg-blue transition-material">
-                  Core Team
+                <Link href="/people" className="text-sm text-gray-500 hover:text-gdg-blue transition-material">
+                  People
                 </Link>
               </li>
               <li>
