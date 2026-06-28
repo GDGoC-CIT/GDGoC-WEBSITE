@@ -85,9 +85,18 @@ function ProfileBgShape({ s, px, py }: { s: typeof PROFILE_SHAPES[0]; px: number
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
-export default function PersonDetail() {
-  const { batch, memberId } = useParams();
-  const batchSlug = (batch as string) || '2026-27';
+interface PersonDetailProps {
+  memberIdOverride?: string;
+  batchSlugOverride?: string;
+  onBack?: () => void;
+}
+
+export default function PersonDetail({ memberIdOverride, batchSlugOverride, onBack }: PersonDetailProps = {}) {
+  const params = useParams();
+  // Use props if provided (when rendered inline via ?id= query), else fall back to URL params
+  const batchSlug = batchSlugOverride || (params.batch as string) || '2026-27';
+  const resolvedMemberId = memberIdOverride || (params.memberId as string) || '';
+
   const [person, setPerson] = useState<Person | null>(null);
   const [loading, setLoading] = useState(true);
   const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 });
@@ -102,11 +111,11 @@ export default function PersonDetail() {
   }, [handleMouseMove]);
 
   useEffect(() => {
-    async function fetch() {
-      if (!memberId || typeof memberId !== 'string') return;
+    async function fetchPerson() {
+      if (!resolvedMemberId) return;
       setLoading(true);
       try {
-        const data = await db.getPersonById(memberId);
+        const data = await db.getPersonById(resolvedMemberId);
         setPerson(data);
       } catch (err) {
         console.error(err);
@@ -114,8 +123,8 @@ export default function PersonDetail() {
         setLoading(false);
       }
     }
-    fetch();
-  }, [memberId]);
+    fetchPerson();
+  }, [resolvedMemberId]);
 
   if (loading) return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: '#F8F9FA' }}>
@@ -158,9 +167,15 @@ export default function PersonDetail() {
           <p style={{ fontSize: 15, fontWeight: 700, color: '#C5221F', marginBottom: 6 }}>Profile Not Found</p>
           <p style={{ fontSize: 13, color: '#C5221F', opacity: 0.8 }}>This member doesn&apos;t exist or was removed.</p>
         </div>
-        <Link href={`/people/${batchSlug}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px', background: '#1A73E8', color: '#fff', borderRadius: 999, fontSize: 13, fontWeight: 700, textDecoration: 'none' }}>
-          <ArrowLeft style={{ width: 16, height: 16 }} /> Back to Directory
-        </Link>
+        {onBack ? (
+          <button onClick={onBack} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px', background: '#1A73E8', color: '#fff', borderRadius: 999, fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer' }}>
+            <ArrowLeft style={{ width: 16, height: 16 }} /> Back to Directory
+          </button>
+        ) : (
+          <Link href={`/people/${batchSlug}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 22px', background: '#1A73E8', color: '#fff', borderRadius: 999, fontSize: 13, fontWeight: 700, textDecoration: 'none' }}>
+            <ArrowLeft style={{ width: 16, height: 16 }} /> Back to Directory
+          </Link>
+        )}
       </main>
       <Footer />
     </div>
@@ -185,11 +200,19 @@ export default function PersonDetail() {
 
       <main style={{ position: 'relative', zIndex: 1, flex: 1, maxWidth: 880, margin: '0 auto', width: '100%', padding: '40px 24px 80px' }}>
         {/* Back Button */}
-        <Link href={`/people/${batchSlug}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#5F6368', textDecoration: 'none', marginBottom: 32 }}
-          onMouseEnter={e => (e.currentTarget as HTMLElement).style.color='#202124'}
-          onMouseLeave={e => (e.currentTarget as HTMLElement).style.color='#5F6368'}>
-          <ChevronLeft style={{ width: 16, height: 16 }} /> Back to Directory
-        </Link>
+        {onBack ? (
+          <button onClick={onBack} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#5F6368', textDecoration: 'none', marginBottom: 32, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.color='#202124'}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.color='#5F6368'}>
+            <ChevronLeft style={{ width: 16, height: 16 }} /> Back to Directory
+          </button>
+        ) : (
+          <Link href={`/people/${batchSlug}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: '#5F6368', textDecoration: 'none', marginBottom: 32 }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.color='#202124'}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.color='#5F6368'}>
+            <ChevronLeft style={{ width: 16, height: 16 }} /> Back to Directory
+          </Link>
+        )}
 
         {/* Profile Card */}
         <div style={{ background: '#fff', borderRadius: 24, border: '1px solid #E8EAED', boxShadow: '0 4px 24px rgba(60,64,67,0.10)', overflow: 'hidden' }}>
