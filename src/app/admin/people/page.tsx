@@ -206,7 +206,7 @@ export default function PeopleAdminPage() {
     setEditingPerson(null);
     setCustomId('');
     setName('');
-    setRole('Development Team');
+    setRole('');
     setBatch(selectedAdminBatch);
     setDepartment('CSE');
     setYear('III');
