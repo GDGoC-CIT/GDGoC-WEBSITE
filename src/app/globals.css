@@ -1,0 +1,73 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500;700&family=Google+Sans:wght@400;500;700&family=Google+Sans+Display:wght@700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-gdg-blue: #1A73E8;
+  --color-gdg-red: #EA4335;
+  --color-gdg-yellow: #FBBC04;
+  --color-gdg-green: #34A853;
+  --color-gdg-gray: #5F6368;
+  --color-gdg-surface: #FFFFFF;
+  --color-gdg-bg: #F8F9FA;
+  
+  --font-sans: 'Google Sans', 'Outfit', system-ui, -apple-system, sans-serif;
+  --font-display: 'Google Sans Display', 'Outfit', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Roboto Mono', monospace;
+
+  --border-radius-gdg-input: 8px;
+  --border-radius-gdg-card: 12px;
+  --border-radius-gdg-pill: 24px;
+}
+
+:root {
+  --background: #F8F9FA;
+  --foreground: #1F1F1F;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+}
+
+/* Material elevation styles */
+.elevation-0 {
+  box-shadow: none;
+}
+.elevation-1 {
+  box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+}
+.elevation-2 {
+  box-shadow: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15);
+}
+.elevation-3 {
+  box-shadow: 0 2px 6px 2px rgba(60,64,67,0.15), 0 6px 10px 4px rgba(60,64,67,0.3);
+}
+
+.transition-material {
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #aaa;
+}
+
+/* Focus outline */
+input:focus, select:focus, textarea:focus, button:focus-visible {
+  outline: 2px solid var(--color-gdg-blue);
+  outline-offset: 2px;
+}
