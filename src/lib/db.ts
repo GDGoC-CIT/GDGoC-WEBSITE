@@ -111,6 +111,12 @@ export interface Badge {
   created_at?: string;
 }
 
+export interface Batch {
+  id: string;
+  name: string;       // e.g. "2026–27"
+  created_at?: string;
+}
+
 
 // Initial Mock Data
 const initialEvents: Event[] = [
@@ -1314,6 +1320,49 @@ class DatabaseService {
       if (typeof window !== 'undefined') {
         localStorage.setItem(`gdg_badges_${batch}`, JSON.stringify(badges));
       }
+    }
+  }
+
+  // ─── Batch CRUD ───────────────────────────────────────────────────────────
+
+  async getBatches(): Promise<Batch[]> {
+    if (this.isMock) {
+      if (typeof window === 'undefined') return [];
+      const stored = localStorage.getItem('gdg_custom_batches');
+      if (!stored) return [];
+      const names: string[] = JSON.parse(stored);
+      return names.map(name => ({ id: name, name }));
+    }
+    try {
+      const { data, error } = await supabase!.from('batches').select('*').order('name');
+      if (error) throw error;
+      return data || [];
+    } catch (err) {
+      console.warn('[getBatches] Supabase failed, fallback to localStorage:', err);
+      if (typeof window === 'undefined') return [];
+      const stored = localStorage.getItem('gdg_custom_batches');
+      if (!stored) return [];
+      const names: string[] = JSON.parse(stored);
+      return names.map(name => ({ id: name, name }));
+    }
+  }
+
+  async saveBatches(batches: Batch[]): Promise<void> {
+    // Always keep localStorage in sync for offline/fallback
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('gdg_custom_batches', JSON.stringify(batches.map(b => b.name)));
+    }
+    if (this.isMock) return;
+    try {
+      await supabase!.from('batches').delete().neq('id', '__never__'); // clear all
+      if (batches.length > 0) {
+        const payload = batches.map(({ created_at: _c, ...b }) => b);
+        const { error } = await supabase!.from('batches').insert(payload);
+        if (error) throw error;
+        console.log('[saveBatches] wrote', payload.length, 'batches to Supabase');
+      }
+    } catch (err) {
+      console.error('[saveBatches] Supabase failed, data saved in localStorage only:', err);
     }
   }
 }

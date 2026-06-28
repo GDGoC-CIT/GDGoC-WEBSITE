@@ -130,16 +130,23 @@ export default function PeopleAdminPage() {
 
       // Dynamic batch discovery:
       const uniqueBatches = Array.from(new Set(data.map(p => p.batch)));
-      let storedBatches: string[] = [];
-      if (typeof window !== 'undefined') {
-        const stored = localStorage.getItem('gdg_custom_batches');
-        if (stored) storedBatches = JSON.parse(stored);
-      }
-      const combined = Array.from(new Set([...['2026–27', '2027–28', '2028–29'], ...uniqueBatches, ...storedBatches]));
-      
-      // Sort batches in ascending chronological order
-      combined.sort((a, b) => a.localeCompare(b));
+
+      // Load saved batches from Supabase (falls back to localStorage)
+      const savedBatchObjs = await db.getBatches();
+      const savedBatchNames = savedBatchObjs.map(b => b.name);
+
+      // Merge: static defaults + from people + from saved batches
+      const combined = Array.from(new Set([
+        ...['2026–27', '2027–28', '2028–29'],
+        ...uniqueBatches,
+        ...savedBatchNames
+      ])).sort((a, b) => a.localeCompare(b));
+
       setBatches(combined);
+
+      // Persist the merged list back to Supabase so new batches from people sync up
+      const mergedBatchObjs = combined.map(name => ({ id: name, name }));
+      await db.saveBatches(mergedBatchObjs);
     } catch (err) {
       console.error('Failed to load admin people database:', err);
     } finally {
@@ -422,7 +429,7 @@ export default function PeopleAdminPage() {
   };
 
   // Batch Creation Submit
-  const handleCreateBatchSubmit = (e: React.FormEvent) => {
+  const handleCreateBatchSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const start = parseInt(startYear, 10);
     const end = parseInt(endYear, 10);
@@ -441,9 +448,8 @@ export default function PeopleAdminPage() {
     }
     const updated = [...batches, batchName].sort((a, b) => a.localeCompare(b));
     setBatches(updated);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('gdg_custom_batches', JSON.stringify(updated));
-    }
+    // Save to Supabase (and localStorage as fallback)
+    await db.saveBatches(updated.map(name => ({ id: name, name })));
     setSelectedAdminBatch(batchName);
     setIsBatchModalOpen(false);
   };
