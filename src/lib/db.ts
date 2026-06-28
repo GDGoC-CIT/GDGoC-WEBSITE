@@ -591,12 +591,15 @@ const initialPeople: Person[] = [
 ];
 
 // Supabase Init
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+// NOTE: These are public/anon keys - safe to commit (they are also in .env.local for local dev).
+// Hardcoded here so the static export (Firebase Hosting) always has them embedded.
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://nibnmfdtgeanrycmlevf.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_WB3VmTv2VLENrphPeMYL5w_H3-Y0mXO';
 
 export const supabase = supabaseUrl && supabaseAnonKey 
   ? createClient(supabaseUrl, supabaseAnonKey) 
   : null;
+
 
 // Database Service Manager (supports local storage syncing for mock dev workflows)
 class DatabaseService {
