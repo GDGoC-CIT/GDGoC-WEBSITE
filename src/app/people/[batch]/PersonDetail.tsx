@@ -318,7 +318,7 @@ export default function PersonDetail({ memberIdOverride, batchSlugOverride, onBa
               {/* Academic Info */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div style={{ background: '#fff', border: '1px solid #E8EAED', borderRadius: 12, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12, boxShadow: '0 1px 4px rgba(60,64,67,0.06)' }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: '#E8F0FE', display: 'flex', alignItems: 'center', justify_content: 'center' }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: '#E8F0FE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <GraduationCap style={{ width: 18, height: 18, color: '#1A73E8' }} />
                   </div>
                   <div>
@@ -327,7 +327,7 @@ export default function PersonDetail({ memberIdOverride, batchSlugOverride, onBa
                   </div>
                 </div>
                 <div style={{ background: '#fff', border: '1px solid #E8EAED', borderRadius: 12, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12, boxShadow: '0 1px 4px rgba(60,64,67,0.06)' }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: '#E6F4EA', display: 'flex', alignItems: 'center', justify_content: 'center' }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: '#E6F4EA', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Layers style={{ width: 18, height: 18, color: '#34A853' }} />
                   </div>
                   <div>
