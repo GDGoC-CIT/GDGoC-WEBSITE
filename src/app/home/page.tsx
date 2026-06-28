@@ -110,7 +110,7 @@ export default function HomePage() {
           </h1>
 
           <p style={{ fontSize: 16, color: '#5F6368', fontWeight: 500, marginBottom: 24, letterSpacing: '0.02em' }}>
-            Coimbatore Institute of Technology
+            Coimbatore Institute of Technol
           </p>
 
           {/* Animated tagline */}
