@@ -1120,13 +1120,7 @@ export default function PeopleAdminPage() {
                         <option key={r.id} value={r.name}>{r.name}</option>
                       ))
                     ) : (
-                      [
-                        'Faculty Advisor', 'Secretary', 'Joint Secretary', 'Treasurer',
-                        'Development Team', 'Design Team', 'Cloud Team', 'AI Team',
-                        'Event Team', 'Media Team', 'Management Team', 'Cyber Security Team'
-                      ].map(r => (
-                        <option key={r} value={r}>{r}</option>
-                      ))
+                      <option value="" disabled>No roles yet — add via Manage Roles</option>
                     )}
                   </select>
 

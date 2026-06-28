@@ -1214,38 +1214,17 @@ class DatabaseService {
     if (this.isMock) {
       if (typeof window === 'undefined') return [];
       const stored = localStorage.getItem(`gdg_roles_${batch}`);
-      if (stored) return JSON.parse(stored);
-      const defaultRoles = [
-        'Faculty Advisor', 'Secretary', 'Joint Secretary', 'Treasurer',
-        'Development Team', 'Design Team', 'Cloud Team', 'AI Team',
-        'Event Team', 'Media Team', 'Management Team', 'Cyber Security Team'
-      ];
-      return defaultRoles.map((r, i) => ({ id: `r-${i}-${batch}`, batch, name: r, display_order: i }));
+      return stored ? JSON.parse(stored) : [];
     }
     try {
       const { data, error } = await supabase!.from('roles').select('*').eq('batch', batch).order('display_order');
       if (error) throw error;
-      if (data && data.length > 0) return data;
-      
-      const defaultRoles = [
-        'Faculty Advisor', 'Secretary', 'Joint Secretary', 'Treasurer',
-        'Development Team', 'Design Team', 'Cloud Team', 'AI Team',
-        'Event Team', 'Media Team', 'Management Team', 'Cyber Security Team'
-      ];
-      const initialRoles: Role[] = defaultRoles.map((r, i) => ({ id: `${batch}-${r.replace(/\s+/g, '-').toLowerCase()}`, batch, name: r, display_order: i }));
-      await supabase!.from('roles').insert(initialRoles);
-      return initialRoles;
+      return data || [];
     } catch (err) {
-      console.warn("Supabase getRoles failed, fallback to local:", err);
+      console.warn('[getRoles] Supabase failed, fallback to localStorage:', err);
       if (typeof window === 'undefined') return [];
       const stored = localStorage.getItem(`gdg_roles_${batch}`);
-      if (stored) return JSON.parse(stored);
-      const defaultRoles = [
-        'Faculty Advisor', 'Secretary', 'Joint Secretary', 'Treasurer',
-        'Development Team', 'Design Team', 'Cloud Team', 'AI Team',
-        'Event Team', 'Media Team', 'Management Team', 'Cyber Security Team'
-      ];
-      return defaultRoles.map((r, i) => ({ id: `r-${i}-${batch}`, batch, name: r, display_order: i }));
+      return stored ? JSON.parse(stored) : [];
     }
   }
 
@@ -1257,11 +1236,15 @@ class DatabaseService {
       return;
     }
     try {
-      await supabase!.from('roles').delete().eq('batch', batch);
-      const { error } = await supabase!.from('roles').insert(roles);
+      const { error: delErr } = await supabase!.from('roles').delete().eq('batch', batch);
+      if (delErr) console.error('[saveRoles] delete error:', delErr);
+      // Strip created_at so the DB default applies
+      const payload = roles.map(({ created_at: _c, ...r }) => r);
+      const { error } = await supabase!.from('roles').insert(payload);
       if (error) throw error;
+      console.log('[saveRoles] wrote', payload.length, 'roles for batch', batch);
     } catch (err) {
-      console.warn("Supabase saveRoles failed, saving to LocalStorage:", err);
+      console.error('[saveRoles] Supabase failed, falling back to LocalStorage:', err);
       if (typeof window !== 'undefined') {
         localStorage.setItem(`gdg_roles_${batch}`, JSON.stringify(roles));
       }
@@ -1317,13 +1300,17 @@ class DatabaseService {
       return;
     }
     try {
-      await supabase!.from('badges').delete().eq('batch', batch);
+      const { error: delErr } = await supabase!.from('badges').delete().eq('batch', batch);
+      if (delErr) console.error('[saveBadges] delete error:', delErr);
       if (badges.length > 0) {
-        const { error } = await supabase!.from('badges').insert(badges);
+        // Strip created_at so the DB default applies
+        const payload = badges.map(({ created_at: _c, ...b }) => b);
+        const { error } = await supabase!.from('badges').insert(payload);
         if (error) throw error;
+        console.log('[saveBadges] wrote', payload.length, 'badges for batch', batch);
       }
     } catch (err) {
-      console.warn("Supabase saveBadges failed, saving to LocalStorage:", err);
+      console.error('[saveBadges] Supabase failed, falling back to LocalStorage:', err);
       if (typeof window !== 'undefined') {
         localStorage.setItem(`gdg_badges_${batch}`, JSON.stringify(badges));
       }
