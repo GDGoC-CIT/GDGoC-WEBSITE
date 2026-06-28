@@ -3,11 +3,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { db, User } from '@/lib/db';
 import { useRouter, usePathname } from 'next/navigation';
+import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
+import { auth, googleProvider } from '@/lib/firebase';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (role?: 'viewer' | 'member' | 'admin', email?: string) => Promise<void>;
+  login: () => Promise<void>;
   loginWithGoogleToken: (idToken: string) => Promise<void>;
   logout: () => Promise<void>;
   updateRole: (role: 'viewer' | 'member' | 'admin') => Promise<void>;
@@ -15,13 +17,17 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const parseJwt = (token: string) => {
-  try {
-    return JSON.parse(atob(token.split('.')[1]));
-  } catch (e) {
-    return null;
+// Determine role from email
+function getRoleFromEmail(email: string): 'viewer' | 'member' | 'admin' {
+  if (
+    email.endsWith('@cit.edu.in') ||
+    email === 'rajkishorerk082004@gmail.com' ||
+    email === 'gdgoncampuscit@gmail.com'
+  ) {
+    return 'admin';
   }
-};
+  return 'viewer';
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -29,24 +35,59 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
+  // On mount: restore session from localStorage AND listen to Firebase Auth state
   useEffect(() => {
-    async function loadSession() {
-      try {
-        const sessionUser = await db.getSessionUser();
-        setUser(sessionUser);
-      } catch (err) {
-        console.error('Failed to load auth session:', err);
-      } finally {
-        setLoading(false);
+    // First: restore cached session quickly (so UI doesn't flash)
+    db.getSessionUser().then(cached => {
+      if (cached) setUser(cached);
+    });
+
+    // Then: sync with Firebase Auth state
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        const email = firebaseUser.email || '';
+        const role = getRoleFromEmail(email);
+
+        const appUser: User = {
+          id: 'google-' + firebaseUser.uid,
+          email,
+          name: firebaseUser.displayName || email.split('@')[0],
+          role,
+          google_avatar_url: firebaseUser.photoURL || ''
+        };
+
+        // Sync to Supabase
+        try {
+          const { supabase } = await import('@/lib/db');
+          if (supabase) {
+            await supabase.from('users').upsert({
+              id: appUser.id,
+              email: appUser.email,
+              name: appUser.name,
+              role: appUser.role,
+              google_avatar_url: appUser.google_avatar_url
+            });
+          }
+        } catch (err) {
+          console.error('Supabase user sync error:', err);
+        }
+
+        await db.setSessionUser(appUser);
+        setUser(appUser);
+      } else {
+        // Firebase says no user — clear session
+        const cached = await db.getSessionUser();
+        if (!cached) setUser(null);
       }
-    }
-    loadSession();
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  // Watch protected routes client-side for routing safety
+  // Route protection
   useEffect(() => {
     if (loading) return;
-
     const isDashboard = pathname === '/dashboard';
     const isAdminRoute = pathname.startsWith('/admin');
 
@@ -61,89 +102,109 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user, pathname, loading, router]);
 
-  const loginWithGoogleToken = async (idToken: string) => {
+  // Real Google Sign-In via Firebase popup
+  const login = async () => {
     setLoading(true);
-    const decoded = parseJwt(idToken);
-    if (!decoded) {
-      setLoading(false);
-      throw new Error("Invalid Google credential token");
-    }
-
-    const email = decoded.email;
-    const name = decoded.name;
-    const avatar = decoded.picture;
-
-    // Auto upgrade admin for user's requested email or any @cit.edu.in
-    let role: 'viewer' | 'member' | 'admin' = 'viewer';
-    if (email.endsWith('@cit.edu.in') || email === 'rajkishorerk082004@gmail.com') {
-      role = 'admin';
-    }
-
-    const realUser: User = {
-      id: 'google-user-' + decoded.sub,
-      email: email,
-      name: name,
-      role: role,
-      google_avatar_url: avatar
-    };
-
-    // Sync to Supabase if config is live
     try {
-      const { supabase } = await import('@/lib/db');
-      if (supabase) {
-        await supabase.from('users').upsert({
-          id: realUser.id,
-          email: realUser.email,
-          name: realUser.name,
-          role: realUser.role,
-          google_avatar_url: realUser.google_avatar_url
-        });
+      const result = await signInWithPopup(auth, googleProvider);
+      const firebaseUser = result.user;
+      const email = firebaseUser.email || '';
+      const role = getRoleFromEmail(email);
+
+      const appUser: User = {
+        id: 'google-' + firebaseUser.uid,
+        email,
+        name: firebaseUser.displayName || email.split('@')[0],
+        role,
+        google_avatar_url: firebaseUser.photoURL || ''
+      };
+
+      // Sync to Supabase
+      try {
+        const { supabase } = await import('@/lib/db');
+        if (supabase) {
+          await supabase.from('users').upsert({
+            id: appUser.id,
+            email: appUser.email,
+            name: appUser.name,
+            role: appUser.role,
+            google_avatar_url: appUser.google_avatar_url
+          });
+        }
+      } catch (err) {
+        console.error('Supabase user sync error:', err);
       }
-    } catch (dbErr) {
-      console.error("Supabase user sync error:", dbErr);
-    }
 
-    await db.setSessionUser(realUser);
-    setUser(realUser);
-    setLoading(false);
+      await db.setSessionUser(appUser);
+      setUser(appUser);
+      setLoading(false);
 
-    if (role === 'admin' || role === 'member') {
-      router.push('/admin/kanban');
-    } else {
-      router.push('/dashboard');
+      if (role === 'admin' || role === 'member') {
+        router.push('/admin/kanban');
+      } else {
+        router.push('/dashboard');
+      }
+    } catch (err: any) {
+      console.error('Google Sign-In failed:', err);
+      setLoading(false);
+      // Don't throw for popup-closed-by-user
+      if (err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
+        throw err;
+      }
     }
   };
 
-  const login = async (role: 'viewer' | 'member' | 'admin' = 'viewer', email?: string) => {
+  // GSI token-based login (kept for the /auth/signin GSI button as fallback)
+  const loginWithGoogleToken = async (idToken: string) => {
     setLoading(true);
-    // Simulate successful Google OAuth sync
-    const defaultEmail = email || (role === 'admin' ? 'lead@cit.edu.in' : role === 'member' ? 'member@cit.edu.in' : 'student@gmail.com');
-    const mockUser: User = {
-      id: role + '-user-' + Math.random().toString(36).substr(2, 5),
-      email: defaultEmail,
-      name: role === 'admin' ? 'Abhishek CIT (Lead)' : role === 'member' ? 'Karthik S (Board)' : 'Ganesh Kumar',
-      role: role,
-      google_avatar_url: role === 'admin' 
-        ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200'
-        : role === 'member'
-        ? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200'
-        : 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=200'
-    };
+    try {
+      const base64 = idToken.split('.')[1];
+      const decoded = JSON.parse(atob(base64));
+      const email = decoded.email || '';
+      const role = getRoleFromEmail(email);
 
-    await db.setSessionUser(mockUser);
-    setUser(mockUser);
-    setLoading(false);
-    
-    // Redirect appropriately
-    if (role === 'admin' || role === 'member') {
-      router.push('/admin/kanban');
-    } else {
-      router.push('/dashboard');
+      const appUser: User = {
+        id: 'google-user-' + decoded.sub,
+        email,
+        name: decoded.name || email.split('@')[0],
+        role,
+        google_avatar_url: decoded.picture || ''
+      };
+
+      try {
+        const { supabase } = await import('@/lib/db');
+        if (supabase) {
+          await supabase.from('users').upsert({
+            id: appUser.id,
+            email: appUser.email,
+            name: appUser.name,
+            role: appUser.role,
+            google_avatar_url: appUser.google_avatar_url
+          });
+        }
+      } catch (dbErr) {
+        console.error('Supabase user sync error:', dbErr);
+      }
+
+      await db.setSessionUser(appUser);
+      setUser(appUser);
+      setLoading(false);
+
+      if (role === 'admin' || role === 'member') {
+        router.push('/admin/kanban');
+      } else {
+        router.push('/dashboard');
+      }
+    } catch (err) {
+      console.error('Token login failed:', err);
+      setLoading(false);
+      throw err;
     }
   };
 
   const logout = async () => {
     setLoading(true);
+    await signOut(auth);
     await db.logoutSession();
     setUser(null);
     setLoading(false);
