@@ -14,15 +14,15 @@ const SHAPES = [
   { type: 'capsule',  cx: '3%',  cy: '44%', w: 70,  h: 24,  color: '#FBBC05', opacity: 0.15, dur: 17, rot: -5  },
   { type: 'circle',   cx: '36%', cy: '91%', r: 30,          color: '#FBBC05', opacity: 0.22, dur: 21 },
   { type: 'circle',   cx: '82%', cy: '38%', r: 18,          color: '#4285F4', opacity: 0.18, dur: 15 },
-  { type: 'circle',   cx: '14%', cy: '55%', r: 12,          color: '#EA4335', opacity: 0.16, dur: 23 },
+  { type: 'circle',   cx: '14%', cy: '55%', r: 12,          color: '#EA4335', opacity: 0.16, dur: 23, mobileVisible: true },
   { type: 'ring',     cx: '50%', cy: '7%',  r: 40,          color: '#34A853', opacity: 0.20, dur: 18 },
   { type: 'ring',     cx: '95%', cy: '50%', r: 28,          color: '#FBBC05', opacity: 0.18, dur: 24 },
   { type: 'ring',     cx: '25%', cy: '80%', r: 22,          color: '#4285F4', opacity: 0.15, dur: 13 },
   { type: 'plus',     cx: '28%', cy: '18%', s: 24,          color: '#4285F4', opacity: 0.22, dur: 11 },
   { type: 'plus',     cx: '70%', cy: '82%', s: 20,          color: '#EA4335', opacity: 0.20, dur: 16 },
-  { type: 'plus',     cx: '90%', cy: '24%', s: 14,          color: '#34A853', opacity: 0.18, dur: 20 },
+  { type: 'plus',     cx: '90%', cy: '24%', s: 14,          color: '#34A853', opacity: 0.18, dur: 20, mobileVisible: true },
   { type: 'triangle', cx: '46%', cy: '89%', s: 32,          color: '#FBBC05', opacity: 0.15, dur: 22 },
-  { type: 'triangle', cx: '5%',  cy: '34%', s: 26,          color: '#4285F4', opacity: 0.13, dur: 17 },
+  { type: 'triangle', cx: '5%',  cy: '34%', s: 26,          color: '#4285F4', opacity: 0.13, dur: 17, mobileVisible: true },
   { type: 'triangle', cx: '78%', cy: '18%', s: 20,          color: '#EA4335', opacity: 0.13, dur: 14 },
   { type: 'dot',      cx: '55%', cy: '5%',  r: 5,           color: '#EA4335', opacity: 0.30, dur: 12 },
   { type: 'dot',      cx: '18%', cy: '70%', r: 4,           color: '#34A853', opacity: 0.28, dur: 19 },
@@ -47,30 +47,31 @@ function Shape({ s, px, py, delay }: { s: Shape; px: number; py: number; delay: 
     animation: `gdg-float-${(delay % 4) + 1} ${s.dur}s ease-in-out infinite`,
     animationDelay: `${delay * -2.1}s`,
   };
+  const className = `bg-shape${(s as any).mobileVisible ? ' mobile-visible' : ''}`;
 
   if (s.type === 'blob') return (
-    <div style={base}>
+    <div style={base} className={className}>
       <svg width={s.w} height={s.h}>
         <ellipse cx={s.w!/2} cy={s.h!/2} rx={s.w!/2} ry={s.h!/2} fill={s.color} fillOpacity={s.opacity} />
       </svg>
     </div>
   );
   if (s.type === 'capsule') return (
-    <div style={{ ...base, transform: `translate(${px*pf}px,${py*pf}px) rotate(${s.rot||0}deg)` }}>
+    <div style={{ ...base, transform: `translate(${px*pf}px,${py*pf}px) rotate(${s.rot||0}deg)` }} className={className}>
       <svg width={s.w} height={s.h}>
         <rect rx={s.h!/2} ry={s.h!/2} width={s.w} height={s.h} fill={s.color} fillOpacity={s.opacity} />
       </svg>
     </div>
   );
   if (s.type === 'circle') return (
-    <div style={base}>
+    <div style={base} className={className}>
       <svg width={s.r!*2} height={s.r!*2}>
         <circle cx={s.r} cy={s.r} r={s.r! - 1} fill={s.color} fillOpacity={s.opacity} />
       </svg>
     </div>
   );
   if (s.type === 'ring') return (
-    <div style={base}>
+    <div style={base} className={className}>
       <svg width={s.r!*2+8} height={s.r!*2+8}>
         <circle cx={s.r!+4} cy={s.r!+4} r={s.r} fill="none" stroke={s.color} strokeOpacity={s.opacity} strokeWidth="3.5" />
       </svg>
@@ -79,7 +80,7 @@ function Shape({ s, px, py, delay }: { s: Shape; px: number; py: number; delay: 
   if (s.type === 'plus') {
     const sz = s.s!; const t = sz / 4;
     return (
-      <div style={base}>
+      <div style={base} className={className}>
         <svg width={sz} height={sz}>
           <rect x={sz/2-t/2} y={0} width={t} height={sz} fill={s.color} fillOpacity={s.opacity} />
           <rect x={0} y={sz/2-t/2} width={sz} height={t} fill={s.color} fillOpacity={s.opacity} />
@@ -90,7 +91,7 @@ function Shape({ s, px, py, delay }: { s: Shape; px: number; py: number; delay: 
   if (s.type === 'triangle') {
     const sz = s.s!;
     return (
-      <div style={base}>
+      <div style={base} className={className}>
         <svg width={sz} height={sz}>
           <polygon points={`${sz/2},0 ${sz},${sz} 0,${sz}`} fill={s.color} fillOpacity={s.opacity} />
         </svg>
@@ -98,14 +99,14 @@ function Shape({ s, px, py, delay }: { s: Shape; px: number; py: number; delay: 
     );
   }
   if (s.type === 'dot') return (
-    <div style={base}>
+    <div style={base} className={className}>
       <svg width={s.r!*2} height={s.r!*2}>
         <circle cx={s.r} cy={s.r} r={s.r} fill={s.color} fillOpacity={s.opacity} />
       </svg>
     </div>
   );
   if (s.type === 'line') return (
-    <div style={{ ...base, transform: `translate(${px*pf}px,${py*pf}px) rotate(${s.rot||0}deg)` }}>
+    <div style={{ ...base, transform: `translate(${px*pf}px,${py*pf}px) rotate(${s.rot||0}deg)` }} className={className}>
       <svg width={s.w} height={4}>
         <rect width={s.w} height={3} rx={2} fill={s.color} fillOpacity={s.opacity} />
       </svg>
@@ -164,6 +165,9 @@ export default function GlobalBackground() {
         }
         @media (prefers-reduced-motion: reduce) {
           [style*="gdg-float"] { animation: none !important; }
+        }
+        @media (max-width: 768px) {
+          .bg-shape:not(.mobile-visible) { display: none !important; }
         }
       `}</style>
     </div>

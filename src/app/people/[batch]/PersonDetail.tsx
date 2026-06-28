@@ -27,11 +27,11 @@ const PROFILE_SHAPES = [
   { type: 'blob', left: '88%',  top: '6%',   w: 140, h: 180, color: '#EA4335', opacity: 0.09, anim: 'animate-float-2' },
   { type: 'blob', left: '90%',  top: '70%',  w: 180, h: 140, color: '#FBBC05', opacity: 0.10, anim: 'animate-float-3' },
   { type: 'blob', left: '3%',   top: '75%',  w: 160, h: 120, color: '#34A853', opacity: 0.09, anim: 'animate-float-1' },
-  { type: 'circle', left: '30%', top: '4%',  r: 24, color: '#FBBC05', opacity: 0.20, anim: 'animate-float-2' },
+  { type: 'circle', left: '30%', top: '4%',  r: 24, color: '#FBBC05', opacity: 0.20, anim: 'animate-float-2', mobileVisible: true },
   { type: 'ring',   left: '65%', top: '92%', r: 28, color: '#4285F4', opacity: 0.18, anim: 'animate-float-3' },
   { type: 'plus',   left: '50%', top: '3%',  s: 20,  color: '#34A853', opacity: 0.18, anim: 'animate-float-1' },
-  { type: 'plus',   left: '15%', top: '50%', s: 14,  color: '#EA4335', opacity: 0.16, anim: 'animate-float-2' },
-  { type: 'dot',    left: '75%', top: '15%', r: 5,   color: '#4285F4', opacity: 0.25, anim: 'animate-float-3' },
+  { type: 'plus',   left: '15%', top: '50%', s: 14,  color: '#EA4335', opacity: 0.16, anim: 'animate-float-2', mobileVisible: true },
+  { type: 'dot',    left: '75%', top: '15%', r: 5,   color: '#4285F4', opacity: 0.25, anim: 'animate-float-3', mobileVisible: true },
   { type: 'triangle', left: '80%', top: '40%', s: 22, color: '#34A853', opacity: 0.13, anim: 'animate-float-1' },
 ];
 
@@ -41,26 +41,27 @@ function ProfileBgShape({ s, px, py }: { s: typeof PROFILE_SHAPES[0]; px: number
     transform: `translate(${px * 0.012}px, ${py * 0.012}px)`,
     transition: 'transform 0.3s ease-out',
   };
+  const className = `${s.anim} profile-bg-shape${(s as any).mobileVisible ? ' mobile-visible' : ''}`;
 
   if (s.type === 'blob') return (
-    <div className={s.anim} style={style}>
+    <div className={className} style={style}>
       <svg width={s.w} height={s.h}><ellipse cx={s.w!/2} cy={s.h!/2} rx={s.w!/2} ry={s.h!/2} fill={s.color} fillOpacity={s.opacity} /></svg>
     </div>
   );
   if (s.type === 'circle') return (
-    <div className={s.anim} style={style}>
+    <div className={className} style={style}>
       <svg width={s.r!*2} height={s.r!*2}><circle cx={s.r} cy={s.r} r={s.r! - 1} fill={s.color} fillOpacity={s.opacity} /></svg>
     </div>
   );
   if (s.type === 'ring') return (
-    <div className={s.anim} style={style}>
+    <div className={className} style={style}>
       <svg width={s.r!*2+8} height={s.r!*2+8}><circle cx={s.r!+4} cy={s.r!+4} r={s.r} fill="none" stroke={s.color} strokeOpacity={s.opacity} strokeWidth="3" /></svg>
     </div>
   );
   if (s.type === 'plus') {
     const sz = s.s!; const t = sz/4;
     return (
-      <div className={s.anim} style={style}>
+      <div className={className} style={style}>
         <svg width={sz} height={sz}>
           <rect x={sz/2-t/2} y={0} width={t} height={sz} fill={s.color} fillOpacity={s.opacity} />
           <rect x={0} y={sz/2-t/2} width={sz} height={t} fill={s.color} fillOpacity={s.opacity} />
@@ -69,14 +70,14 @@ function ProfileBgShape({ s, px, py }: { s: typeof PROFILE_SHAPES[0]; px: number
     );
   }
   if (s.type === 'dot') return (
-    <div className={s.anim} style={style}>
+    <div className={className} style={style}>
       <svg width={s.r!*2} height={s.r!*2}><circle cx={s.r} cy={s.r} r={s.r} fill={s.color} fillOpacity={s.opacity} /></svg>
     </div>
   );
   if (s.type === 'triangle') {
     const sz = s.s!;
     return (
-      <div className={s.anim} style={style}>
+      <div className={className} style={style}>
         <svg width={sz} height={sz}><polygon points={`${sz/2},0 ${sz},${sz} 0,${sz}`} fill={s.color} fillOpacity={s.opacity} /></svg>
       </div>
     );
@@ -394,6 +395,9 @@ export default function PersonDetail({ memberIdOverride, batchSlugOverride, onBa
         @keyframes spin { to { transform: rotate(360deg); } }
         @media (max-width: 640px) {
           .profile-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
+        }
+        @media (max-width: 768px) {
+          .profile-bg-shape:not(.mobile-visible) { display: none !important; }
         }
       `}</style>
     </div>
