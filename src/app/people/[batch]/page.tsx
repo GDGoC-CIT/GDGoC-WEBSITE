@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import BatchPeoplePage from './BatchPeoplePage';
 
 export async function generateStaticParams() {
@@ -9,5 +10,9 @@ export async function generateStaticParams() {
 }
 
 export default function BatchPage() {
-  return <BatchPeoplePage />;
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, color: '#5F6368' }}>Loading...</div>}>
+      <BatchPeoplePage />
+    </Suspense>
+  );
 }

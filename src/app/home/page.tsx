@@ -127,7 +127,7 @@ export default function HomePage() {
             </span>
           </div>
 
-          <p style={{ fontSize: 16, color: '#5F6368', lineHeight: 1.75, maxWidth: 560, margin: '0 auto 36px', fontWeight: 400 }}>
+          <p style={{   fontSize: 16, color: '#5F6368', lineHeight: 1.75, maxWidth: 560, margin: '0 auto 36px', fontWeight: 400 }}>
             Explore Google Cloud, Flutter, Android, AI/ML and Web dev. Build with peers, ship your ideas, and grow as a developer.
           </p>
 

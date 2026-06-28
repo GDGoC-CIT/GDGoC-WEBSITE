@@ -6,7 +6,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { db, Person } from '@/lib/db';
 import { Linkedin, Github, Mail, Globe, ShieldCheck, ChevronDown, Users } from 'lucide-react';
-import PersonDetail from './[memberId]/PersonDetail';
+import PersonDetail from './PersonDetail';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const BATCH_SLUGS = ['2026-27', '2027-28', '2028-29'];

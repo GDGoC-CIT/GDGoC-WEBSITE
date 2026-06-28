@@ -122,12 +122,31 @@ export default function PersonDetail() {
       <Header />
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ width: 40, height: 40, border: '4px solid #E8EAED', borderTopColor: '#4285F4', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 12px' }} />
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginBottom: 16 }}>
+            {['#4285F4', '#EA4335', '#FBBC05', '#34A853'].map((color, index) => (
+              <div
+                key={index}
+                style={{
+                  width: 12,
+                  height: 12,
+                  borderRadius: '50%',
+                  backgroundColor: color,
+                  animation: 'gdg-bounce 0.6s ease-in-out infinite alternate',
+                  animationDelay: `${index * 0.12}s`
+                }}
+              />
+            ))}
+          </div>
           <p style={{ fontSize: 12, color: '#5F6368', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Loading profile…</p>
         </div>
       </div>
       <Footer />
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <style>{`
+        @keyframes gdg-bounce {
+          from { transform: translateY(0); }
+          to { transform: translateY(-12px); }
+        }
+      `}</style>
     </div>
   );
 

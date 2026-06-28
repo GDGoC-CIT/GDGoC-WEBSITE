@@ -667,9 +667,15 @@ class DatabaseService {
       if (typeof window === 'undefined') return initialEvents;
       return JSON.parse(localStorage.getItem('gdg_events') || '[]');
     }
-    const { data, error } = await supabase!.from('events').select('*').order('date', { ascending: true });
-    if (error) throw error;
-    return data || [];
+    try {
+      const { data, error } = await supabase!.from('events').select('*').order('date', { ascending: true });
+      if (error) throw error;
+      return data || [];
+    } catch (err) {
+      console.warn("Supabase getEvents query failed, falling back to LocalStorage:", err);
+      if (typeof window === 'undefined') return initialEvents;
+      return JSON.parse(localStorage.getItem('gdg_events') || JSON.stringify(initialEvents));
+    }
   }
 
   async getEventById(id: string): Promise<Event | null> {
@@ -731,9 +737,15 @@ class DatabaseService {
       if (typeof window === 'undefined') return initialRSVPs;
       return JSON.parse(localStorage.getItem('gdg_rsvps') || '[]');
     }
-    const { data, error } = await supabase!.from('rsvps').select('*');
-    if (error) throw error;
-    return data || [];
+    try {
+      const { data, error } = await supabase!.from('rsvps').select('*');
+      if (error) throw error;
+      return data || [];
+    } catch (err) {
+      console.warn("Supabase getRSVPs query failed, falling back to LocalStorage:", err);
+      if (typeof window === 'undefined') return initialRSVPs;
+      return JSON.parse(localStorage.getItem('gdg_rsvps') || JSON.stringify(initialRSVPs));
+    }
   }
 
   async getRSVPsForEvent(eventId: string): Promise<RSVP[]> {
@@ -826,9 +838,15 @@ class DatabaseService {
       if (typeof window === 'undefined') return initialTasks;
       return JSON.parse(localStorage.getItem('gdg_tasks') || '[]');
     }
-    const { data, error } = await supabase!.from('tasks').select('*').order('position', { ascending: true });
-    if (error) throw error;
-    return data || [];
+    try {
+      const { data, error } = await supabase!.from('tasks').select('*').order('position', { ascending: true });
+      if (error) throw error;
+      return data || [];
+    } catch (err) {
+      console.warn("Supabase getTasks query failed, falling back to LocalStorage:", err);
+      if (typeof window === 'undefined') return initialTasks;
+      return JSON.parse(localStorage.getItem('gdg_tasks') || JSON.stringify(initialTasks));
+    }
   }
 
   async createTask(task: Omit<Task, 'id' | 'created_at' | 'updated_at'>): Promise<Task> {
@@ -912,9 +930,15 @@ class DatabaseService {
       if (typeof window === 'undefined') return initialGallery;
       return JSON.parse(localStorage.getItem('gdg_gallery') || '[]');
     }
-    const { data, error } = await supabase!.from('gallery').select('*').order('created_at', { ascending: false });
-    if (error) throw error;
-    return data || [];
+    try {
+      const { data, error } = await supabase!.from('gallery').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    } catch (err) {
+      console.warn("Supabase getGallery query failed, falling back to LocalStorage:", err);
+      if (typeof window === 'undefined') return initialGallery;
+      return JSON.parse(localStorage.getItem('gdg_gallery') || JSON.stringify(initialGallery));
+    }
   }
 
   async uploadToGallery(item: Omit<GalleryItem, 'id' | 'created_at'>): Promise<GalleryItem> {
@@ -940,9 +964,15 @@ class DatabaseService {
       if (typeof window === 'undefined') return initialAchievements;
       return JSON.parse(localStorage.getItem('gdg_achievements') || '[]');
     }
-    const { data, error } = await supabase!.from('achievements').select('*').order('year', { ascending: false });
-    if (error) throw error;
-    return data || [];
+    try {
+      const { data, error } = await supabase!.from('achievements').select('*').order('year', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    } catch (err) {
+      console.warn("Supabase getAchievements query failed, falling back to LocalStorage:", err);
+      if (typeof window === 'undefined') return initialAchievements;
+      return JSON.parse(localStorage.getItem('gdg_achievements') || JSON.stringify(initialAchievements));
+    }
   }
 
   async createAchievement(achievement: Omit<Achievement, 'id' | 'created_at'>): Promise<Achievement> {

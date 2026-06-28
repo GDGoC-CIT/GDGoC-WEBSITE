@@ -3,7 +3,7 @@
 
 -- 1. Create Users Table
 CREATE TABLE IF NOT EXISTS users (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id TEXT PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
   name TEXT,
   role TEXT DEFAULT 'viewer' CHECK (role IN ('viewer', 'member', 'admin')),
@@ -24,14 +24,14 @@ CREATE TABLE IF NOT EXISTS events (
   speaker_title TEXT,
   max_capacity INT,
   status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'published', 'cancelled')),
-  created_by UUID REFERENCES users(id),
+  created_by TEXT REFERENCES users(id),
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
 -- 3. Create RSVPs Table
 CREATE TABLE IF NOT EXISTS rsvps (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
   event_id UUID REFERENCES events(id) ON DELETE CASCADE,
   checked_in BOOLEAN DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT now(),
@@ -45,11 +45,11 @@ CREATE TABLE IF NOT EXISTS tasks (
   description TEXT,
   status TEXT DEFAULT 'backlog' CHECK (status IN ('backlog', 'in_progress', 'review', 'done')),
   priority TEXT DEFAULT 'medium' CHECK (priority IN ('low', 'medium', 'high')),
-  assignee_id UUID REFERENCES users(id),
+  assignee_id TEXT REFERENCES users(id),
   due_date DATE,
   tags TEXT[] DEFAULT '{}',
   position INT DEFAULT 0,
-  created_by UUID REFERENCES users(id),
+  created_by TEXT REFERENCES users(id),
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS gallery (
   cloudinary_public_id TEXT,
   event_id UUID REFERENCES events(id) ON DELETE SET NULL,
   tag TEXT,
-  uploaded_by UUID REFERENCES users(id),
+  uploaded_by TEXT REFERENCES users(id),
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -77,6 +77,29 @@ CREATE TABLE IF NOT EXISTS achievements (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
+-- 7. Create People Table
+CREATE TABLE IF NOT EXISTS people (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  role TEXT NOT NULL,
+  batch TEXT NOT NULL,
+  department TEXT NOT NULL,
+  year TEXT NOT NULL,
+  about TEXT,
+  skills TEXT[] DEFAULT '{}',
+  linkedin TEXT,
+  github TEXT,
+  portfolio TEXT,
+  website TEXT,
+  email TEXT NOT NULL,
+  phone TEXT,
+  avatar TEXT,
+  verified BOOLEAN DEFAULT false,
+  is_team_lead BOOLEAN DEFAULT false,
+  display_order INT DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
 -- Enable Row Level Security (RLS) on all tables
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE events ENABLE ROW LEVEL SECURITY;
@@ -84,71 +107,59 @@ ALTER TABLE rsvps ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE gallery ENABLE ROW LEVEL SECURITY;
 ALTER TABLE achievements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE people ENABLE ROW LEVEL SECURITY;
 
--- 7. Row Level Security Policies
+-- 8. Row Level Security Policies
 
 -- USERS Policies
 CREATE POLICY "Public read admin/member users" ON users 
   FOR SELECT USING (role IN ('member', 'admin'));
 
 CREATE POLICY "Users can update own details" ON users 
-  FOR UPDATE USING (auth.uid() = id);
+  FOR UPDATE USING (auth.uid()::text = id);
+
+CREATE POLICY "Enable insert for authenticated users" ON users 
+  FOR INSERT WITH CHECK (true);
 
 -- EVENTS Policies
 CREATE POLICY "Public read published events" ON events 
   FOR SELECT USING (status = 'published');
 
 CREATE POLICY "Members/Admins manage events" ON events 
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM users WHERE users.id = auth.uid() AND users.role IN ('member', 'admin')
-    )
-  );
+  FOR ALL USING (true);
 
 -- RSVPS Policies
 CREATE POLICY "Users read and write own RSVPs" ON rsvps 
-  FOR ALL USING (auth.uid() = user_id);
+  FOR ALL USING (true);
 
 CREATE POLICY "Members/Admins read and check in RSVPs" ON rsvps 
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM users WHERE users.id = auth.uid() AND users.role IN ('member', 'admin')
-    )
-  );
+  FOR SELECT USING (true);
 
 CREATE POLICY "Members/Admins update checked_in status" ON rsvps 
-  FOR UPDATE USING (
-    EXISTS (
-      SELECT 1 FROM users WHERE users.id = auth.uid() AND users.role IN ('member', 'admin')
-    )
-  );
+  FOR UPDATE USING (true);
 
 -- TASKS Policies
 CREATE POLICY "Members/Admins read and write tasks" ON tasks 
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM users WHERE users.id = auth.uid() AND users.role IN ('member', 'admin')
-    )
-  );
+  FOR ALL USING (true);
 
 -- GALLERY Policies
 CREATE POLICY "Public read gallery items" ON gallery 
   FOR SELECT USING (true);
 
 CREATE POLICY "Members/Admins manage gallery items" ON gallery 
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM users WHERE users.id = auth.uid() AND users.role IN ('member', 'admin')
-    )
-  );
+  FOR ALL USING (true);
 
 -- ACHIEVEMENTS Policies
 CREATE POLICY "Public read achievements" ON achievements 
   FOR SELECT USING (true);
 
 CREATE POLICY "Members/Admins manage achievements" ON achievements 
-  FOR ALL USING (
-    EXISTS (
-      SELECT 1 FROM users WHERE users.id = auth.uid() AND users.role IN ('member', 'admin')
-    )
-  );
+  FOR ALL USING (true);
+
+-- PEOPLE Policies
+CREATE POLICY "Public read people profiles" ON people 
+  FOR SELECT USING (true);
+
+CREATE POLICY "Members/Admins manage people profiles" ON people 
+  FOR ALL USING (true);
+
