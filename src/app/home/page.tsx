@@ -101,7 +101,7 @@ export default function HomePage() {
 
           {/* GDG Wordmark */}
           <h1 style={{ fontSize: 'clamp(48px, 10vw, 84px)', fontWeight: 900, lineHeight: 1, letterSpacing: '-0.04em', marginBottom: 12 }}>
-            <span style={{ color: G.blue }}>G</span>
+            <span style={{ color: G.blue }}>g</span>
             <span style={{ color: G.red }}>D</span>
             <span style={{ color: G.yellow }}>G </span>
             <span style={{ color: '#202124', fontWeight: 600, marginLeft: 10 }}>on Campus</span>
