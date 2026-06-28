@@ -352,8 +352,8 @@ export default function BatchPeoplePage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
                     <div style={{ height: 2, width: 32, background: 'linear-gradient(90deg, transparent, #DADCE0)' }} />
                     <h2 style={{
-                      fontSize: 13, fontWeight: 800, textTransform: 'uppercase',
-                      letterSpacing: '0.12em', color: '#5F6368',
+                      fontSize: 15, fontWeight: 900, textTransform: 'uppercase',
+                      letterSpacing: '0.14em', color: '#202124',
                     }}>{role}</h2>
                     <div style={{ height: 2, width: 32, background: 'linear-gradient(90deg, #DADCE0, transparent)' }} />
                   </div>
