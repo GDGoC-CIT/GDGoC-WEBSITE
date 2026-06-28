@@ -18,9 +18,9 @@ export default function Header() {
   const navItems = [
     { name: 'Home', href: '/home', icon: Calendar },
     { name: 'Events', href: '/events', icon: Calendar },
-    { name: 'Gallery', href: '/gallery', icon: ImageIcon },
-    { name: 'Team', href: '/team', icon: Users },
     { name: 'Achievements', href: '/achievements', icon: Award },
+    { name: 'Gallery', href: '/gallery', icon: ImageIcon },
+    { name: 'People', href: '/people', icon: Users },
   ];
 
   const handleGoogleLogin = () => {
@@ -153,6 +153,15 @@ export default function Header() {
                           >
                             <Upload className="w-4 h-4 mr-2.5 text-gdg-green" />
                             Upload Media
+                          </Link>
+
+                          <Link
+                            href="/admin/people"
+                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                            onClick={() => setDropdownOpen(false)}
+                          >
+                            <Users className="w-4 h-4 mr-2.5 text-gdg-red" />
+                            Manage People
                           </Link>
                         </>
                       )}

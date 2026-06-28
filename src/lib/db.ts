@@ -70,6 +70,28 @@ export interface Achievement {
   created_at?: string;
 }
 
+export interface Person {
+  id: string;
+  name: string;
+  role: string;
+  batch: string;
+  department: string;
+  year: string;
+  about: string;
+  skills: string[];
+  linkedin: string;
+  github: string;
+  portfolio?: string;
+  website?: string;
+  email: string;
+  phone?: string;
+  avatar: string;
+  verified?: boolean;
+  is_team_lead?: boolean;
+  display_order?: number;
+  created_at?: string;
+}
+
 // Initial Mock Data
 const initialEvents: Event[] = [
   {
@@ -224,6 +246,350 @@ const initialRSVPs: RSVP[] = [
   { id: 'r-2', user_id: 'viewer-user', event_id: 'evt-4', checked_in: true }
 ];
 
+const initialPeople: Person[] = [
+  // 2026–27 Batch
+  {
+    id: "dr-kishores",
+    name: "Dr. R. Kishores",
+    role: "Faculty Advisor",
+    batch: "2026–27",
+    department: "ECE",
+    year: "Staff",
+    about: "Dr. R. Kishores is a passionate educator and technology enthusiast advising the GDG CIT chapter. He specializes in wireless networks and cloud architectures.",
+    skills: ["Cloud Computing", "IoT", "Networking", "Academic Mentoring"],
+    linkedin: "https://linkedin.com",
+    github: "https://github.com",
+    email: "kishores@cit.edu.in",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200",
+    verified: true,
+    display_order: 1
+  },
+  {
+    id: "dr-rajeshwari",
+    name: "Dr. A. Rajeshwari",
+    role: "Faculty Advisor",
+    batch: "2026–27",
+    department: "CSE",
+    year: "Staff",
+    about: "Dr. A. Rajeshwari supervises student developers and domain research labs at CIT, driving collaboration on cloud engineering and AI tracks.",
+    skills: ["Algorithms", "Machine Learning", "System Design"],
+    linkedin: "https://linkedin.com",
+    github: "https://github.com",
+    email: "rajeshwari@cit.edu.in",
+    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200",
+    verified: true,
+    display_order: 2
+  },
+  {
+    id: "arun-kumar",
+    name: "Arun Kumar",
+    role: "Secretary",
+    batch: "2026–27",
+    department: "CSE",
+    year: "IV",
+    about: "Technical Lead and Secretary at GDG CIT. Full-stack developer passionate about building scalable web products and mentoring peers on Next.js/React.",
+    skills: ["Next.js", "React", "TypeScript", "Node.js", "PostgreSQL"],
+    linkedin: "https://linkedin.com",
+    github: "https://github.com",
+    portfolio: "https://arunkumar.dev",
+    email: "arun@cit.edu.in",
+    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200",
+    verified: true,
+    display_order: 1
+  },
+  {
+    id: "divya-s",
+    name: "Divya S",
+    role: "Secretary",
+    batch: "2026–27",
+    department: "IT",
+    year: "IV",
+    about: "Machine Learning Lead & Secretary. Specializes in computer vision and natural language processing pipelines using TensorFlow and PyTorch.",
+    skills: ["TensorFlow", "Python", "PyTorch", "OpenCV", "FastAPI"],
+    linkedin: "https://linkedin.com",
+    github: "https://github.com",
+    email: "divya@cit.edu.in",
+    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=200",
+    verified: true,
+    display_order: 2
+  },
+  {
+    id: "sanjay-m",
+    name: "Sanjay M",
+    role: "Joint Secretary",
+    batch: "2026–27",
+    department: "CSE",
+    year: "III",
+    about: "Mobile developer exploring Flutter and Native Android. Joint Secretary at GDG CIT organizing workshops and hands-on compose camps.",
+    skills: ["Flutter", "Kotlin", "Dart", "Firebase", "Android Jetpack"],
+    linkedin: "https://linkedin.com",
+    github: "https://github.com",
+    email: "sanjay@cit.edu.in",
+    avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=200",
+    verified: false,
+    display_order: 1
+  },
+  {
+    id: "priya-r",
+    name: "Priya R",
+    role: "Joint Secretary",
+    batch: "2026–27",
+    department: "IT",
+    year: "III",
+    about: "UI/UX enthusiast focused on crafting clean interfaces, wireframing, and establishing user experience patterns using Figma and Google Material Design.",
+    skills: ["Figma", "UI/UX Design", "Wireframing", "Material Design", "CSS"],
+    linkedin: "https://linkedin.com",
+    github: "https://github.com",
+    portfolio: "https://priyadesign.me",
+    email: "priya@cit.edu.in",
+    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200",
+    verified: false,
+    display_order: 2
+  },
+  {
+    id: "vijay-anand",
+    name: "Vijay Anand",
+    role: "Treasurer",
+    batch: "2026–27",
+    department: "CSE",
+    year: "IV",
+    about: "Treasurer and Cloud Domain enthusiast. Manages budget allocations and coordinates infrastructure pipelines for hackathons.",
+    skills: ["Google Cloud", "Docker", "Kubernetes", "DevOps", "Financial Planning"],
+    linkedin: "https://linkedin.com",
+    github: "https://github.com",
+    email: "vijay@cit.edu.in",
+    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200",
+    verified: true,
+    display_order: 1
+  },
+  {
+    id: "abhishek-m",
+    name: "Abhishek M",
+    role: "Development Team",
+    batch: "2026–27",
+    department: "CSE",
+    year: "III",
+    about: "Web developer working on user management, database integrations, and dynamic dashboard interfaces for community apps.",
+    skills: ["React", "Express", "MongoDB", "Tailwind CSS"],
+    linkedin: "https://linkedin.com",
+    github: "https://github.com",
+    email: "abhishek@cit.edu.in",
+    avatar: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&q=80&w=200",
+    is_team_lead: true,
+    display_order: 1
+  },
+  {
+    id: "karthik-s",
+    name: "Karthik S",
+    role: "Development Team",
+    batch: "2026–27",
+    department: "IT",
+    year: "III",
+    about: "Frontend engineer focused on component performance, responsiveness, and state management logic using Zustand and React.",
+    skills: ["JavaScript", "HTML5", "Sass", "Responsive Design"],
+    linkedin: "https://linkedin.com",
+    github: "https://github.com",
+    email: "karthik@cit.edu.in",
+    avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=200",
+    display_order: 2
+  },
+  {
+    id: "kavya-b",
+    name: "Kavya B",
+    role: "Design Team",
+    batch: "2026–27",
+    department: "ECE",
+    year: "III",
+    about: "Creative designer specializing in branding assets, web banners, and illustrations for events and social media announcements.",
+    skills: ["Illustrator", "Photoshop", "Typography", "Branding"],
+    linkedin: "https://linkedin.com",
+    github: "https://github.com",
+    email: "kavya@cit.edu.in",
+    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200",
+    is_team_lead: true,
+    display_order: 1
+  },
+  {
+    id: "manoj-k",
+    name: "Manoj K",
+    role: "Cloud Team",
+    batch: "2026–27",
+    department: "CSE",
+    year: "III",
+    about: "Cloud engineer exploring Serverless architectures, Cloud Run, and deployment automations using GitHub Actions.",
+    skills: ["GCP", "Firebase", "CI/CD", "Serverless"],
+    linkedin: "https://linkedin.com",
+    github: "https://github.com",
+    email: "manoj@cit.edu.in",
+    avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200",
+    is_team_lead: true,
+    display_order: 1
+  },
+  {
+    id: "pooja-r",
+    name: "Pooja R",
+    role: "AI Team",
+    batch: "2026–27",
+    department: "IT",
+    year: "III",
+    about: "Data scientist working on deep learning models and predictive analytics. Enthusiastic about generative AI and LLM integrations.",
+    skills: ["Python", "Pandas", "Scikit-Learn", "Data Analysis"],
+    linkedin: "https://linkedin.com",
+    github: "https://github.com",
+    email: "pooja@cit.edu.in",
+    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200",
+    is_team_lead: true,
+    display_order: 1
+  },
+  {
+    id: "rahul-g",
+    name: "Rahul G",
+    role: "Event Team",
+    batch: "2026–27",
+    department: "ECE",
+    year: "III",
+    about: "Event coordinator who excels in speaker outreach, logistical planning, schedule pipelines, and venue arrangements.",
+    skills: ["Public Relations", "Project Management", "Operations"],
+    linkedin: "https://linkedin.com",
+    github: "https://github.com",
+    email: "rahul@cit.edu.in",
+    avatar: "https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?auto=format&fit=crop&q=80&w=200",
+    is_team_lead: true,
+    display_order: 1
+  },
+  {
+    id: "sneha-v",
+    name: "Sneha V",
+    role: "Media Team",
+    batch: "2026–27",
+    department: "IT",
+    year: "III",
+    about: "Media production enthusiast. Edits event highlights, designs recap flyers, and coordinates video coverage for CIT technical events.",
+    skills: ["Premiere Pro", "Videography", "Photography", "Content Writing"],
+    is_team_lead: true,
+    linkedin: "https://linkedin.com",
+    github: "https://github.com",
+    email: "sneha@cit.edu.in",
+    avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=200",
+    display_order: 1
+  },
+  {
+    id: "vikas-p",
+    name: "Vikas P",
+    role: "Management Team",
+    batch: "2026–27",
+    department: "CSE",
+    year: "IV",
+    about: "Coordinates inter-chapter relations and manages sponsorship drives, vendor communications, and resource procurement.",
+    skills: ["Leadership", "Negotiation", "Public Speaking", "Strategy"],
+    linkedin: "https://linkedin.com",
+    github: "https://github.com",
+    email: "vikas@cit.edu.in",
+    avatar: "https://images.unsplash.com/photo-1519345182560-3f2917c472ef?auto=format&fit=crop&q=80&w=200",
+    is_team_lead: true,
+    display_order: 1
+  },
+  {
+    id: "hari-prasad",
+    name: "Hari Prasad",
+    role: "Cyber Security Team",
+    batch: "2026–27",
+    department: "IT",
+    year: "IV",
+    about: "Security analyst focused on penetration testing, CTFs, vulnerability scanning, and conducting cryptography sessions.",
+    skills: ["Linux", "Metasploit", "Cryptography", "Reverse Engineering"],
+    linkedin: "https://linkedin.com",
+    github: "https://github.com",
+    email: "hari@cit.edu.in",
+    avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200",
+    is_team_lead: true,
+    display_order: 1
+  },
+
+  // 2027–28 Batch
+  {
+    id: "dr-kishores",
+    name: "Dr. R. Kishores",
+    role: "Faculty Advisor",
+    batch: "2027–28",
+    department: "ECE",
+    year: "Staff",
+    about: "Dr. R. Kishores is a passionate educator advising the GDG CIT chapter.",
+    skills: ["Cloud Computing", "IoT", "Academic Mentoring"],
+    linkedin: "https://linkedin.com",
+    github: "https://github.com",
+    email: "kishores@cit.edu.in",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200",
+    verified: true,
+    display_order: 1
+  },
+  {
+    id: "manoj-k",
+    name: "Manoj K",
+    role: "Secretary",
+    batch: "2027–28",
+    department: "CSE",
+    year: "IV",
+    about: "Cloud engineer serving as Secretary for 2027–28.",
+    skills: ["GCP", "Firebase", "CI/CD", "Serverless", "Leadership"],
+    linkedin: "https://linkedin.com",
+    github: "https://github.com",
+    email: "manoj@cit.edu.in",
+    avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200",
+    verified: true,
+    display_order: 1
+  },
+  {
+    id: "kavya-b",
+    name: "Kavya B",
+    role: "Joint Secretary",
+    batch: "2027–28",
+    department: "ECE",
+    year: "IV",
+    about: "Creative designer serving as Joint Secretary for 2027–28.",
+    skills: ["Illustrator", "Photoshop", "Typography", "Branding", "UI Design"],
+    linkedin: "https://linkedin.com",
+    github: "https://github.com",
+    email: "kavya@cit.edu.in",
+    avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200",
+    display_order: 1
+  },
+
+  // 2028–29 Batch
+  {
+    id: "dr-kishores",
+    name: "Dr. R. Kishores",
+    role: "Faculty Advisor",
+    batch: "2028–29",
+    department: "ECE",
+    year: "Staff",
+    about: "Dr. R. Kishores advising the GDG CIT chapter.",
+    skills: ["Cloud Computing", "IoT", "Academic Mentoring"],
+    linkedin: "https://linkedin.com",
+    github: "https://github.com",
+    email: "kishores@cit.edu.in",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200",
+    verified: true,
+    display_order: 1
+  },
+  {
+    id: "abhishek-sec",
+    name: "Abhishek M",
+    role: "Secretary",
+    batch: "2028–29",
+    department: "CSE",
+    year: "IV",
+    about: "Web developer serving as Secretary for 2028–29.",
+    skills: ["React", "Express", "MongoDB", "Tailwind CSS", "Management"],
+    linkedin: "https://linkedin.com",
+    github: "https://github.com",
+    email: "abhishek@cit.edu.in",
+    avatar: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&q=80&w=200",
+    verified: true,
+    display_order: 1
+  }
+];
+
 // Supabase Init
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
@@ -248,12 +614,22 @@ class DatabaseService {
 
   private initLocalStorage() {
     if (typeof window === 'undefined') return;
+    // Version migration: clear stale people data when slug IDs were introduced
+    const DB_VERSION = '2';
+    if (localStorage.getItem('gdg_db_version') !== DB_VERSION) {
+      localStorage.removeItem('gdg_people');
+      Object.keys(localStorage)
+        .filter(k => k.startsWith('gdg_role_order_'))
+        .forEach(k => localStorage.removeItem(k));
+      localStorage.setItem('gdg_db_version', DB_VERSION);
+    }
     if (!localStorage.getItem('gdg_events')) localStorage.setItem('gdg_events', JSON.stringify(initialEvents));
     if (!localStorage.getItem('gdg_team')) localStorage.setItem('gdg_team', JSON.stringify(initialTeam));
     if (!localStorage.getItem('gdg_gallery')) localStorage.setItem('gdg_gallery', JSON.stringify(initialGallery));
     if (!localStorage.getItem('gdg_achievements')) localStorage.setItem('gdg_achievements', JSON.stringify(initialAchievements));
     if (!localStorage.getItem('gdg_tasks')) localStorage.setItem('gdg_tasks', JSON.stringify(initialTasks));
     if (!localStorage.getItem('gdg_rsvps')) localStorage.setItem('gdg_rsvps', JSON.stringify(initialRSVPs));
+    if (!localStorage.getItem('gdg_people')) localStorage.setItem('gdg_people', JSON.stringify(initialPeople));
   }
 
   // Get active session user (mocked for preview development)
@@ -598,6 +974,236 @@ class DatabaseService {
       .order('name');
     if (error) throw error;
     return data || [];
+  }
+
+  // PEOPLE (GDG MEMBERS)
+  async getPeople(): Promise<Person[]> {
+    let list: Person[] = [];
+    if (this.isMock) {
+      if (typeof window === 'undefined') return initialPeople;
+      const stored = localStorage.getItem('gdg_people');
+      if (!stored) {
+        list = [...initialPeople];
+        localStorage.setItem('gdg_people', JSON.stringify(list));
+      } else {
+        list = JSON.parse(stored);
+      }
+    } else {
+      try {
+        const { data, error } = await supabase!.from('people').select('*').order('name');
+        if (error) throw error;
+        list = data || [];
+      } catch (err) {
+        console.warn("Supabase 'people' query failed, falling back to LocalStorage:", err);
+        if (typeof window === 'undefined') return initialPeople;
+        list = JSON.parse(localStorage.getItem('gdg_people') || JSON.stringify(initialPeople));
+      }
+    }
+
+    // Programmatic migration / default value initializer for display_order and team lead roles
+    let migrated = false;
+    
+    // Group people by batch & role to calculate default orders
+    const batchRoleMap: Record<string, Record<string, Person[]>> = {};
+    list.forEach(p => {
+      if (p.display_order === undefined) {
+        p.display_order = 999; // Default large order to be filled
+        migrated = true;
+      }
+      if (!batchRoleMap[p.batch]) batchRoleMap[p.batch] = {};
+      if (!batchRoleMap[p.batch][p.role]) batchRoleMap[p.batch][p.role] = [];
+      batchRoleMap[p.batch][p.role].push(p);
+    });
+
+    // For any member still having 999, assign sequential index
+    Object.keys(batchRoleMap).forEach(b => {
+      Object.keys(batchRoleMap[b]).forEach(r => {
+        const sorted = [...batchRoleMap[b][r]].sort((x, y) => {
+          if (x.display_order !== 999 && y.display_order !== 999) return x.display_order! - y.display_order!;
+          return x.name.localeCompare(y.name);
+        });
+        sorted.forEach((p, idx) => {
+          if (p.display_order === 999) {
+            p.display_order = idx + 1;
+            migrated = true;
+          }
+        });
+      });
+    });
+
+    // Sync initial mock team leads if not set
+    const leadNames = ["Abhishek M", "Kavya B", "Manoj K", "Pooja R", "Rahul G", "Sneha V", "Vikas P", "Hari Prasad"];
+    list.forEach(p => {
+      if (p.batch === '2026–27' && leadNames.includes(p.name) && p.is_team_lead === undefined) {
+        p.is_team_lead = true;
+        migrated = true;
+      }
+    });
+
+    if (migrated && typeof window !== 'undefined' && this.isMock) {
+      localStorage.setItem('gdg_people', JSON.stringify(list));
+    }
+
+    return list;
+  }
+
+  async getPersonById(id: string): Promise<Person | null> {
+    const people = await this.getPeople();
+    return people.find(p => p.id === id) || null;
+  }
+
+  async getNextPersonId(batch: string): Promise<string> {
+    const people = await this.getPeople();
+    const batchPeople = people.filter(p => p.batch === batch);
+    
+    let maxNum = 0;
+    batchPeople.forEach(p => {
+      const match = p.id.match(/^p(\d+)$/);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (num > maxNum) maxNum = num;
+      }
+    });
+    
+    return `p${maxNum + 1}`;
+  }
+
+  async getRoleOrder(batch: string): Promise<string[]> {
+    const defaultRoles = [
+      'Faculty Advisor',
+      'Secretary',
+      'Joint Secretary',
+      'Treasurer',
+      'Development Team',
+      'Design Team',
+      'Cloud Team',
+      'AI Team',
+      'Event Team',
+      'Media Team',
+      'Management Team',
+      'Cyber Security Team'
+    ];
+    
+    if (typeof window === 'undefined') return defaultRoles;
+    const stored = localStorage.getItem(`gdg_role_order_${batch}`);
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch (e) {
+        return defaultRoles;
+      }
+    }
+    
+    // Fallback: build dynamic list from existing members to ensure all roles are covered
+    const people = await this.getPeople();
+    const batchRoles = Array.from(new Set(people.filter(p => p.batch === batch).map(p => p.role)));
+    
+    // Sort batchRoles prioritizing defaultRoles order, others at bottom
+    const combined = [...defaultRoles];
+    batchRoles.forEach(r => {
+      if (!combined.includes(r)) combined.push(r);
+    });
+    
+    return combined;
+  }
+
+  async saveRoleOrder(batch: string, order: string[]): Promise<void> {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`gdg_role_order_${batch}`, JSON.stringify(order));
+    }
+  }
+
+  async createPerson(person: Omit<Person, 'created_at'>): Promise<Person> {
+    if (this.isMock) {
+      const people = await this.getPeople();
+      
+      // Calculate next display_order inside their role section if not provided
+      let displayOrder = person.display_order;
+      if (displayOrder === undefined) {
+        const roleMembers = people.filter(p => p.batch === person.batch && p.role === person.role);
+        displayOrder = roleMembers.length + 1;
+      }
+
+      const newPerson: Person = {
+        ...person,
+        display_order: displayOrder,
+        created_at: new Date().toISOString()
+      };
+      people.push(newPerson);
+      localStorage.setItem('gdg_people', JSON.stringify(people));
+      return newPerson;
+    }
+    try {
+      const { data, error } = await supabase!.from('people').insert([person]).select().single();
+      if (error) throw error;
+      return data;
+    } catch (err) {
+      console.warn("Supabase createPerson failed, writing to LocalStorage:", err);
+      const people = await this.getPeople();
+      let displayOrder = person.display_order;
+      if (displayOrder === undefined) {
+        const roleMembers = people.filter(p => p.batch === person.batch && p.role === person.role);
+        displayOrder = roleMembers.length + 1;
+      }
+      const newPerson: Person = {
+        ...person,
+        display_order: displayOrder,
+        created_at: new Date().toISOString()
+      };
+      people.push(newPerson);
+      localStorage.setItem('gdg_people', JSON.stringify(people));
+      return newPerson;
+    }
+  }
+
+  async updatePerson(id: string, updates: Partial<Person>): Promise<Person> {
+    if (this.isMock) {
+      const people = await this.getPeople();
+      const index = people.findIndex(p => p.id === id);
+      if (index === -1) throw new Error('Person not found');
+      const updated = { ...people[index], ...updates };
+      people[index] = updated;
+      localStorage.setItem('gdg_people', JSON.stringify(people));
+      return updated;
+    }
+    try {
+      const { data, error } = await supabase!.from('people').update(updates).eq('id', id).select().single();
+      if (error) throw error;
+      return data;
+    } catch (err) {
+      console.warn("Supabase updatePerson failed, updating LocalStorage:", err);
+      const people = await this.getPeople();
+      const index = people.findIndex(p => p.id === id);
+      if (index === -1) throw new Error('Person not found');
+      const updated = { ...people[index], ...updates };
+      people[index] = updated;
+      localStorage.setItem('gdg_people', JSON.stringify(people));
+      return updated;
+    }
+  }
+
+  async deletePerson(id: string): Promise<void> {
+    console.log("DatabaseService: deleting person with ID:", id);
+    if (this.isMock) {
+      const people = await this.getPeople();
+      console.log("Mock Mode: total people before filter =", people.length);
+      const filtered = people.filter(p => p.id !== id);
+      console.log("Mock Mode: total people after filter =", filtered.length);
+      localStorage.setItem('gdg_people', JSON.stringify(filtered));
+      return;
+    }
+    try {
+      console.log("Supabase Mode: deleting person ID =", id);
+      const { error } = await supabase!.from('people').delete().eq('id', id);
+      if (error) throw error;
+      console.log("Supabase Mode: delete succeeded");
+    } catch (err) {
+      console.error("Supabase deletePerson failed:", err);
+      const people = await this.getPeople();
+      const filtered = people.filter(p => p.id !== id);
+      localStorage.setItem('gdg_people', JSON.stringify(filtered));
+      throw err; // propagate error so admin page displays alert feedback
+    }
   }
 }
 

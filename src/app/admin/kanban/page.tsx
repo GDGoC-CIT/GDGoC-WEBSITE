@@ -181,7 +181,7 @@ export default function KanbanPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="flex flex-col min-h-screen bg-gdg-bg">
+      <div className="flex flex-col min-h-screen">
         <Header />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
@@ -212,7 +212,7 @@ export default function KanbanPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gdg-bg">
+    <div className="flex flex-col min-h-screen">
       <Header />
 
       <main className="flex-1 p-6 flex flex-col w-full max-w-[1600px] mx-auto overflow-hidden">
@@ -353,7 +353,7 @@ export default function KanbanPage() {
         {/* Modal: Create Task */}
         {createOpen && (
           <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
               <div className="p-6 border-b border-gray-150 flex items-center justify-between">
                 <h3 className="text-base font-extrabold text-gray-850 font-display">Create Operations Task</h3>
                 <button onClick={() => setCreateOpen(false)} className="p-1.5 hover:bg-gray-100 rounded-lg cursor-pointer">
@@ -484,7 +484,7 @@ export default function KanbanPage() {
         {/* Modal: Task Detail */}
         {modalOpen && selectedTask && (
           <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-100 shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               {/* Header */}
               <div className="p-6 border-b border-gray-150 flex items-center justify-between bg-gray-50 rounded-t-2xl">
                 <div>

@@ -53,7 +53,7 @@ export default function AchievementsPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gdg-bg">
+    <div className="flex flex-col min-h-screen">
       <Header />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-1 w-full">
@@ -69,7 +69,7 @@ export default function AchievementsPage() {
 
         {/* Stats Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <div className="bg-white rounded-2xl border border-gray-150 p-6 flex items-center space-x-4 shadow-sm">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-6 flex items-center space-x-4 shadow-sm">
             <div className="p-3 bg-blue-50 text-gdg-blue rounded-xl">
               <Trophy className="w-6 h-6" />
             </div>
@@ -79,7 +79,7 @@ export default function AchievementsPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-gray-150 p-6 flex items-center space-x-4 shadow-sm">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-6 flex items-center space-x-4 shadow-sm">
             <div className="p-3 bg-red-50 text-gdg-red rounded-xl">
               <Award className="w-6 h-6" />
             </div>
@@ -89,7 +89,7 @@ export default function AchievementsPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-gray-150 p-6 flex items-center space-x-4 shadow-sm">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-6 flex items-center space-x-4 shadow-sm">
             <div className="p-3 bg-green-50 text-gdg-green rounded-xl">
               <Sparkles className="w-6 h-6" />
             </div>
@@ -101,7 +101,7 @@ export default function AchievementsPage() {
         </div>
 
         {/* Filters Panel */}
-        <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm mb-12 space-y-4">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-6 shadow-sm mb-12 space-y-4">
           <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
             {/* Categories */}
             <div className="flex flex-wrap gap-2 items-center">
@@ -177,7 +177,7 @@ export default function AchievementsPage() {
                   <div className={`w-full md:w-1/2 pl-8 md:pl-12 ${
                     isEven ? 'md:order-3' : 'md:order-1'
                   }`}>
-                    <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm hover:elevation-2 transition-material">
+                    <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-6 shadow-sm hover:elevation-2 transition-material">
                       {/* For Mobile display, render titles inside cards */}
                       <div className={`md:hidden mb-3`}>
                         <span className="inline-block bg-blue-50 border border-blue-200 text-gdg-blue text-[9px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider mb-1">

@@ -145,7 +145,7 @@ export default function ManageEventsPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="flex flex-col min-h-screen bg-gdg-bg">
+      <div className="flex flex-col min-h-screen">
         <Header />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
@@ -158,7 +158,7 @@ export default function ManageEventsPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gdg-bg">
+    <div className="flex flex-col min-h-screen">
       <Header />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full">
@@ -186,7 +186,7 @@ export default function ManageEventsPage() {
 
         {/* Form Panel Container */}
         {formOpen && (
-          <div className="bg-white rounded-2xl border border-gray-150 p-6 sm:p-8 shadow-md mb-8 animate-fadeIn">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-6 sm:p-8 shadow-md mb-8 animate-fadeIn">
             <h3 className="text-base font-extrabold text-gray-850 font-display mb-4">
               {editingEvent ? 'Edit Event Specifications' : 'Build New Event'}
             </h3>
@@ -323,7 +323,7 @@ export default function ManageEventsPage() {
         )}
 
         {/* Data Table */}
-        <div className="bg-white rounded-2xl border border-gray-150 shadow-sm overflow-hidden">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>

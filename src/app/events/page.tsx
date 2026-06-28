@@ -95,7 +95,7 @@ export default function EventsPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gdg-bg">
+    <div className="flex flex-col min-h-screen">
       <Header />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-1 w-full">
@@ -110,7 +110,7 @@ export default function EventsPage() {
         </div>
 
         {/* Search & Filters */}
-        <div className="bg-white rounded-2xl border border-gray-150 p-4 sm:p-6 shadow-sm mb-8 space-y-4">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-4 sm:p-6 shadow-sm mb-8 space-y-4">
           <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
             {/* Tab switchers */}
             <div className="flex bg-gray-100 p-1.5 rounded-full w-full md:w-auto">

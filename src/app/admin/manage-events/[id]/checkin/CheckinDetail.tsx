@@ -107,7 +107,7 @@ export default function CheckinDashboardPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="flex flex-col min-h-screen bg-gdg-bg">
+      <div className="flex flex-col min-h-screen">
         <Header />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
@@ -121,7 +121,7 @@ export default function CheckinDashboardPage() {
 
   if (!event) {
     return (
-      <div className="flex flex-col min-h-screen bg-gdg-bg">
+      <div className="flex flex-col min-h-screen">
         <Header />
         <div className="flex-1 flex flex-col items-center justify-center text-center p-6">
           <ShieldAlert className="w-16 h-16 text-gdg-red mb-4" />
@@ -149,7 +149,7 @@ export default function CheckinDashboardPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gdg-bg">
+    <div className="flex flex-col min-h-screen">
       <Header />
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full">
@@ -163,7 +163,7 @@ export default function CheckinDashboardPage() {
         </button>
 
         {/* Event Header info strip */}
-        <div className="bg-white rounded-2xl border border-gray-150 p-6 sm:p-8 shadow-sm mb-8">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-6 sm:p-8 shadow-sm mb-8">
           <span className="bg-yellow-50 border border-yellow-200 text-gdg-yellow px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">
             Check-In console
           </span>
@@ -176,7 +176,7 @@ export default function CheckinDashboardPage() {
 
         {/* Stats Strip */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm flex items-center justify-between">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-6 shadow-sm flex items-center justify-between">
             <div>
               <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Total RSVPs</span>
               <span className="text-2xl font-extrabold text-gray-950 mt-1 block">{rsvps.length} registered</span>
@@ -184,7 +184,7 @@ export default function CheckinDashboardPage() {
             <Users className="w-8 h-8 text-gray-300" />
           </div>
 
-          <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm flex items-center justify-between">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-6 shadow-sm flex items-center justify-between">
             <div>
               <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider">Checked In</span>
               <span className="text-2xl font-extrabold text-gdg-green mt-1 block">{checkedInCount} attended</span>
@@ -192,7 +192,7 @@ export default function CheckinDashboardPage() {
             <CheckCircle2 className="w-8 h-8 text-gdg-green" />
           </div>
 
-          <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-6 shadow-sm">
             <span className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Attendance Ratio</span>
             <div className="flex items-center space-x-4">
               <span className="text-2xl font-extrabold text-gray-900">{attendancePercentage}%</span>
@@ -209,7 +209,7 @@ export default function CheckinDashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
           
           {/* QR Scanner Simulator */}
-          <div className="bg-white rounded-2xl border border-gray-150 p-6 sm:p-8 shadow-sm space-y-6">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-6 sm:p-8 shadow-sm space-y-6">
             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider flex items-center">
               <QrCode className="w-4.5 h-4.5 mr-2 text-gdg-blue" />
               QR Code Scanner Simulator
@@ -263,7 +263,7 @@ export default function CheckinDashboardPage() {
           </div>
 
           {/* Attendee Registry list */}
-          <div className="bg-white rounded-2xl border border-gray-150 p-6 sm:p-8 shadow-sm">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-6 sm:p-8 shadow-sm">
             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Attendee Registry</h3>
             
             <div className="divide-y divide-gray-100 max-h-[400px] overflow-y-auto pr-2">

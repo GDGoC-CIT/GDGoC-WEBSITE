@@ -134,7 +134,7 @@ export default function AdminUploadPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="flex flex-col min-h-screen bg-gdg-bg">
+      <div className="flex flex-col min-h-screen">
         <Header />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
@@ -147,7 +147,7 @@ export default function AdminUploadPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gdg-bg">
+    <div className="flex flex-col min-h-screen">
       <Header />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-1 w-full">
@@ -165,7 +165,7 @@ export default function AdminUploadPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
           
           {/* Uploader Form */}
-          <div className="bg-white rounded-2xl border border-gray-150 p-6 sm:p-8 shadow-sm space-y-6">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-6 sm:p-8 shadow-sm space-y-6">
             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Upload New Image</h3>
             
             <form onSubmit={handleUploadSubmit} className="space-y-5">
@@ -276,7 +276,7 @@ export default function AdminUploadPage() {
 
           {/* Upload Results Side Panel */}
           <div className="space-y-6">
-            <div className="bg-white rounded-2xl border border-gray-150 p-6 sm:p-8 shadow-sm">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-6 sm:p-8 shadow-sm">
               <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Pipeline Transformation Settings</h3>
               
               <div className="space-y-4 text-xs">
@@ -301,7 +301,7 @@ export default function AdminUploadPage() {
 
             {/* Display newly uploaded preview */}
             {uploadedAsset && (
-              <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm border-2 border-gdg-green/30 animate-pulse">
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-6 shadow-sm border-2 border-gdg-green/30 animate-pulse">
                 <div className="flex items-center space-x-2.5 text-gdg-green mb-4">
                   <CheckCircle2 className="w-5 h-5" />
                   <span className="text-xs font-bold uppercase tracking-wider">Asset uploaded successfully</span>

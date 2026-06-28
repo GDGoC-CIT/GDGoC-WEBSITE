@@ -68,7 +68,7 @@ export default function DashboardPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="flex flex-col min-h-screen bg-gdg-bg">
+      <div className="flex flex-col min-h-screen">
         <Header />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
@@ -95,7 +95,7 @@ export default function DashboardPage() {
   });
 
   return (
-    <div className="flex flex-col min-h-screen bg-gdg-bg">
+    <div className="flex flex-col min-h-screen">
       <Header />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full">
@@ -103,7 +103,7 @@ export default function DashboardPage() {
           
           {/* Left Sidebar Menu */}
           <div className="lg:col-span-1 space-y-6">
-            <div className="bg-white rounded-2xl border border-gray-150 p-6 text-center shadow-sm">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-6 text-center shadow-sm">
               <div className="relative w-20 h-20 mx-auto rounded-full overflow-hidden border border-gray-200 shadow-inner">
                 <img
                   src={user.google_avatar_url}
@@ -130,7 +130,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Sidebar Navigation */}
-            <div className="bg-white rounded-2xl border border-gray-150 p-3 shadow-sm">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-3 shadow-sm">
               <nav className="space-y-1">
                 <button
                   onClick={() => setActiveSubTab('rsvps')}
@@ -180,7 +180,7 @@ export default function DashboardPage() {
             {/* Tab: RSVPs */}
             {activeSubTab === 'rsvps' && (
               <div className="space-y-6">
-                <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm">
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-6 shadow-sm">
                   <h3 className="text-lg font-extrabold text-gray-850 font-display">My Event Registrations</h3>
                   <p className="text-xs text-gray-500 mt-1">Review your confirmed RSVPs, check-in QR codes, and recap status.</p>
                 </div>
@@ -198,7 +198,7 @@ export default function DashboardPage() {
                         return (
                           <div 
                             key={rsvp.id} 
-                            className="bg-white rounded-2xl border border-gray-150 p-6 flex flex-col justify-between hover:elevation-1 transition-material"
+                            className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-6 flex flex-col justify-between hover:elevation-1 transition-material"
                           >
                             <div>
                               <span className="bg-blue-50 text-gdg-blue px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">
@@ -242,7 +242,7 @@ export default function DashboardPage() {
                       })}
                     </div>
                   ) : (
-                    <div className="bg-white rounded-2xl border border-gray-150 p-10 text-center">
+                    <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-10 text-center">
                       <Calendar className="w-10 h-10 text-gray-300 mx-auto mb-3" />
                       <p className="text-gray-500 text-sm font-medium">You haven't RSVPed to any upcoming events yet.</p>
                       <button
@@ -260,7 +260,7 @@ export default function DashboardPage() {
                 <div>
                   <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Past Recaps</h4>
                   {pastRSVPs.length > 0 ? (
-                    <div className="bg-white rounded-2xl border border-gray-150 divide-y divide-gray-100 overflow-hidden shadow-sm">
+                    <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 divide-y divide-gray-100 overflow-hidden shadow-sm">
                       {pastRSVPs.map(rsvp => {
                         const evt = eventsMap[rsvp.event_id];
                         if (!evt) return null;
@@ -292,7 +292,7 @@ export default function DashboardPage() {
                       })}
                     </div>
                   ) : (
-                    <div className="bg-white rounded-2xl border border-gray-150 p-8 text-center text-gray-500 text-xs font-semibold">
+                    <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-8 text-center text-gray-500 text-xs font-semibold">
                       No past completed events found in your registration log.
                     </div>
                   )}
@@ -302,7 +302,7 @@ export default function DashboardPage() {
 
             {/* Tab: Profile */}
             {activeSubTab === 'profile' && (
-              <div className="bg-white rounded-2xl border border-gray-150 p-6 sm:p-8 shadow-sm space-y-6">
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-6 sm:p-8 shadow-sm space-y-6">
                 <div>
                   <h3 className="text-lg font-extrabold text-gray-850 font-display">My Developer Profile</h3>
                   <p className="text-xs text-gray-500 mt-1">Google OAuth synchronized profile information (Read-only).</p>
@@ -344,7 +344,7 @@ export default function DashboardPage() {
             {/* Tab: Notifications */}
             {activeSubTab === 'notifications' && (
               <div className="space-y-6">
-                <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm">
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-6 shadow-sm">
                   <h3 className="text-lg font-extrabold text-gray-850 font-display">Notifications & Calendar Syncs</h3>
                   <p className="text-xs text-gray-500 mt-1">Google Calendar integration and upcoming reminders for registered events.</p>
                 </div>
@@ -356,7 +356,7 @@ export default function DashboardPage() {
                       if (!evt) return null;
 
                       return (
-                        <div key={rsvp.id} className="bg-white rounded-2xl border border-gray-150 p-5 flex items-start space-x-4 shadow-xs">
+                        <div key={rsvp.id} className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-5 flex items-start space-x-4 shadow-xs">
                           <div className="p-2.5 bg-yellow-50 text-gdg-yellow rounded-xl border border-yellow-100 flex-shrink-0">
                             <Bell className="w-5 h-5" />
                           </div>
@@ -382,7 +382,7 @@ export default function DashboardPage() {
                       );
                     })
                   ) : (
-                    <div className="bg-white rounded-2xl border border-gray-150 p-12 text-center">
+                    <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-12 text-center">
                       <Bell className="w-10 h-10 text-gray-300 mx-auto mb-3" />
                       <p className="text-gray-550 text-xs font-semibold">No active event reminders at this time.</p>
                     </div>

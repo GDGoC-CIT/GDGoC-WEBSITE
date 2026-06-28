@@ -35,7 +35,7 @@ export default function TeamPage() {
       key={member.id}
       onMouseEnter={() => setHoveredMemberId(member.id)}
       onMouseLeave={() => setHoveredMemberId(null)}
-      className="bg-white rounded-2xl border border-gray-150 p-6 flex flex-col items-center text-center hover:elevation-2 transition-material relative group"
+      className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-6 flex flex-col items-center text-center hover:elevation-2 transition-material relative group"
     >
       {/* Circle Avatar */}
       <div className="relative w-24 h-24 rounded-full overflow-hidden p-1 bg-gradient-to-r from-gdg-blue via-gdg-red to-gdg-yellow shadow-inner">
@@ -93,7 +93,7 @@ export default function TeamPage() {
   );
 
   return (
-    <div className="flex flex-col min-h-screen bg-gdg-bg">
+    <div className="flex flex-col min-h-screen">
       <Header />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-1 w-full">
@@ -118,7 +118,7 @@ export default function TeamPage() {
               Chapter Faculty Advisor & Lead
             </h2>
             <div className="max-w-md mx-auto">
-              <div className="bg-white rounded-2xl border-2 border-gdg-blue/30 p-8 flex flex-col items-center text-center hover:elevation-2 transition-material relative group">
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl border-2 border-gdg-blue/30 p-8 flex flex-col items-center text-center hover:elevation-2 transition-material relative group">
                 <span className="absolute -top-3.5 bg-gdg-blue text-white px-3.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider elevation-1">
                   CHAPTER HEAD
                 </span>

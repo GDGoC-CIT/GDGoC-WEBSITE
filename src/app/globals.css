@@ -25,7 +25,6 @@
 }
 
 body {
-  background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
   min-height: 100vh;
@@ -71,3 +70,53 @@ input:focus, select:focus, textarea:focus, button:focus-visible {
   outline: 2px solid var(--color-gdg-blue);
   outline-offset: 2px;
 }
+
+/* Redesigned Background floating animations */
+@keyframes float-drift-1 {
+  0% { transform: translateY(0px) rotate(0deg) scale(1); }
+  50% { transform: translateY(-16px) rotate(6deg) scale(1.04); }
+  100% { transform: translateY(0px) rotate(0deg) scale(1); }
+}
+
+@keyframes float-drift-2 {
+  0% { transform: translateY(0px) rotate(0deg) scale(1); }
+  50% { transform: translateY(-24px) rotate(-8deg) scale(0.96); }
+  100% { transform: translateY(0px) rotate(0deg) scale(1); }
+}
+
+@keyframes float-drift-3 {
+  0% { transform: translateX(0px) translateY(0px) rotate(0deg); }
+  50% { transform: translateX(12px) translateY(-14px) rotate(10deg); }
+  100% { transform: translateX(0px) translateY(0px) rotate(0deg); }
+}
+
+@keyframes float-drift-4 {
+  0% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.08) rotate(180deg); }
+  100% { transform: scale(1) rotate(360deg); }
+}
+
+.animate-float-1 {
+  animation: float-drift-1 14s ease-in-out infinite;
+  will-change: transform;
+}
+.animate-float-2 {
+  animation: float-drift-2 18s ease-in-out infinite;
+  will-change: transform;
+}
+.animate-float-3 {
+  animation: float-drift-3 20s ease-in-out infinite;
+  will-change: transform;
+}
+.animate-float-4 {
+  animation: float-drift-4 28s linear infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float-1, .animate-float-2, .animate-float-3, .animate-float-4 {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+

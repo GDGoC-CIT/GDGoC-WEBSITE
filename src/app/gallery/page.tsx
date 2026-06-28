@@ -32,22 +32,27 @@ export default function GalleryPage() {
   });
 
   return (
-    <div className="flex flex-col min-h-screen bg-gdg-bg">
+    <div className="flex flex-col min-h-screen">
       <Header />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex-1 w-full">
         {/* Banner Title */}
-        <div className="text-center mb-10">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 font-display tracking-tight">
+        <div style={{ textAlign: 'center', marginBottom: 40 }}>
+          <div style={{ display: 'flex', gap: 5, justifyContent: 'center', marginBottom: 10 }}>
+            {['#4285F4','#EA4335','#FBBC05','#34A853'].map(c => (
+              <div key={c} style={{ width: 8, height: 8, borderRadius: '50%', background: c }} />
+            ))}
+          </div>
+          <h1 style={{ fontSize: 34, fontWeight: 900, color: '#202124', letterSpacing: '-0.03em', margin: 0 }}>
             Campus Moments Gallery
           </h1>
-          <p className="text-gray-500 text-sm mt-2 max-w-md mx-auto">
-            Capturing workshops, study sessions, team hackathons, and developer engagement at Coimbatore Institute of Technology.
+          <p style={{ fontSize: 14, color: '#5F6368', marginTop: 8, maxWidth: 440, margin: '10px auto 0' }}>
+            Workshops, study sessions, hackathons and developer engagement at CIT.
           </p>
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-2xl border border-gray-150 p-4 shadow-sm mb-8 flex flex-wrap gap-2 items-center justify-center sm:justify-start">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-4 shadow-sm mb-8 flex flex-wrap gap-2 items-center justify-center sm:justify-start">
           <span className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center mr-2">
             <Filter className="w-3.5 h-3.5 mr-1" />
             Tags:

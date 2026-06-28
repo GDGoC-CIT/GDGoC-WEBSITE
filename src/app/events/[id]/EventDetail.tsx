@@ -100,7 +100,7 @@ export default function EventDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col min-h-screen bg-gdg-bg">
+      <div className="flex flex-col min-h-screen">
         <Header />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
@@ -115,7 +115,7 @@ export default function EventDetailPage() {
 
   if (!event) {
     return (
-      <div className="flex flex-col min-h-screen bg-gdg-bg">
+      <div className="flex flex-col min-h-screen">
         <Header />
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
           <ShieldAlert className="w-16 h-16 text-gdg-red mb-4 animate-bounce" />
@@ -146,7 +146,7 @@ export default function EventDetailPage() {
     event.type === 'hackathon' ? 'bg-gdg-red' : 'bg-gdg-green';
 
   return (
-    <div className="flex flex-col min-h-screen bg-gdg-bg">
+    <div className="flex flex-col min-h-screen">
       <Header />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full">
@@ -178,7 +178,7 @@ export default function EventDetailPage() {
           {/* Main Info Column */}
           <div className="lg:col-span-2 space-y-8">
             {/* Description */}
-            <div className="bg-white rounded-2xl border border-gray-150 p-6 sm:p-8 shadow-sm">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-6 sm:p-8 shadow-sm">
               <h2 className="text-xl font-extrabold text-gray-900 font-display mb-4">Event Description</h2>
               <div className="text-gray-600 text-sm sm:text-base leading-relaxed space-y-4 whitespace-pre-line">
                 {event.description}
@@ -186,7 +186,7 @@ export default function EventDetailPage() {
             </div>
 
             {/* Date and Location specifications */}
-            <div className="bg-white rounded-2xl border border-gray-150 p-6 sm:p-8 shadow-sm grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-6 sm:p-8 shadow-sm grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
                 <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center">
                   <Calendar className="w-4.5 h-4.5 mr-2 text-gdg-blue" />
@@ -222,7 +222,7 @@ export default function EventDetailPage() {
 
             {/* Speaker Card */}
             {event.speaker_name && (
-              <div className="bg-white rounded-2xl border border-gray-150 p-6 sm:p-8 shadow-sm">
+              <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-6 sm:p-8 shadow-sm">
                 <h2 className="text-xl font-extrabold text-gray-900 font-display mb-6">About the Speaker</h2>
                 <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
                   <div className="w-20 h-20 rounded-full bg-blue-50 text-gdg-blue border border-blue-100 flex items-center justify-center font-extrabold text-2xl elevation-1 flex-shrink-0 uppercase font-display">
@@ -245,7 +245,7 @@ export default function EventDetailPage() {
 
           {/* Sticky Panel RSVP Column */}
           <div className="space-y-6">
-            <div className="bg-white rounded-2xl border border-gray-150 p-6 shadow-sm sticky top-24">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-6 shadow-sm sticky top-24">
               <h3 className="text-lg font-bold text-gray-850">RSVP Status</h3>
               
               <div className="mt-4 flex items-center justify-between">
