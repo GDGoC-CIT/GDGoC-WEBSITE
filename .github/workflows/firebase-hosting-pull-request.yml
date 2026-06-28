@@ -13,7 +13,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: npm run build
+      - name: Install dependencies
+        run: npm ci
+      - name: Build site
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://nibnmfdtgeanrycmlevf.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_WB3VmTv2VLENrphPeMYL5w_H3-Y0mXO
+          NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: dedmzt6lv
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
