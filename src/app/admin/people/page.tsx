@@ -272,18 +272,7 @@ export default function PeopleAdminPage() {
   // CRUD: Clear all members in selected batch
   const handleClearBatch = async () => {
     const batchLabel = selectedAdminBatch;
-    const confirmed = window.confirm(
-      `⚠️ DANGER ZONE\n\nThis will permanently delete ALL members in the "${batchLabel}" batch.\n\nThis action cannot be undone.\n\nAre you absolutely sure?`
-    );
-    if (!confirmed) return;
-
-    const doubleConfirm = window.prompt(
-      `Type the batch name exactly to confirm deletion:\n\n"${batchLabel}"`
-    );
-    if (doubleConfirm?.trim() !== batchLabel) {
-      alert('Batch name did not match. Operation cancelled.');
-      return;
-    }
+    if (!window.confirm(`Delete ALL members in the "${batchLabel}" batch? This cannot be undone.`)) return;
 
     try {
       const toDelete = people.filter(p => p.batch === batchLabel);
