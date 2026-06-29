@@ -13,7 +13,7 @@ import {
 
 const DEPARTMENTS = ['M.Sc.Software Systems','M.Sc.Data Science','M.Sc.Artificial Intelligence and Machine Learining','M.Sc.DCS','CSE', 'IT', 'ECE', 'EEE', 'MECH', 'CIVIL', 'AIDS', 'AIML'];
 
-const YEARS = ['I', 'II', 'III', 'IV', 'Staff'];
+const YEARS = ['I', 'II', 'III', 'IV', 'V','Staff'];
 
 export default function PeopleAdminPage() {
   // Password Authentication State
