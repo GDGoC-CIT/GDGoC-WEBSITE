@@ -244,7 +244,7 @@ export default function PersonDetail({ memberIdOverride, batchSlugOverride, onBa
               )}
 
               {/* Avatar */}
-              <div style={{ width: 148, height: 148, borderRadius: '50%', overflow: 'hidden', border: '4px solid #E8EAED', boxShadow: '0 6px 24px rgba(60,64,67,0.14)' }}>
+              <div style={{ width: 148, height: 148, borderRadius: 16, overflow: 'hidden', border: '4px solid #E8EAED', boxShadow: '0 6px 24px rgba(60,64,67,0.14)' }}>
                 <img
                   src={person.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&background=4285F4&color=fff&size=300`}
                   alt={person.name}
@@ -254,41 +254,54 @@ export default function PersonDetail({ memberIdOverride, batchSlugOverride, onBa
 
 
               {/* Social Links */}
-              <div style={{ width: '100%', borderTop: '1px solid #F1F3F4', paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <p style={{ fontSize: 10, fontWeight: 700, color: '#9AA0A6', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Connect</p>
-                {person.linkedin && (
-                  <a href={person.linkedin} target="_blank" rel="noopener noreferrer"
-                    style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 600, color: '#5F6368', textDecoration: 'none', padding: '6px 10px', borderRadius: 8, background: '#F8F9FA', border: '1px solid #E8EAED' }}>
-                    <Linkedin style={{ width: 14, height: 14, color: '#0077B5' }} /> LinkedIn
-                  </a>
-                )}
-                {person.github && (
-                  <a href={person.github} target="_blank" rel="noopener noreferrer"
-                    style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 600, color: '#5F6368', textDecoration: 'none', padding: '6px 10px', borderRadius: 8, background: '#F8F9FA', border: '1px solid #E8EAED' }}>
-                    <Github style={{ width: 14, height: 14 }} /> GitHub
-                  </a>
-                )}
-                {(person.portfolio || person.website) && (
-                  <a href={person.portfolio || person.website} target="_blank" rel="noopener noreferrer"
-                    style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 600, color: '#5F6368', textDecoration: 'none', padding: '6px 10px', borderRadius: 8, background: '#F8F9FA', border: '1px solid #E8EAED' }}>
-                    <Globe style={{ width: 14, height: 14, color: '#34A853' }} /> Portfolio
-                  </a>
-                )}
-                {person.email && (
-                  <a href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(person.email)}`}
-                    target="_blank" rel="noopener noreferrer"
-                    title="Send email via Gmail"
-                    style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 600, color: '#5F6368', textDecoration: 'none', padding: '6px 10px', borderRadius: 8, background: '#F8F9FA', border: '1px solid #E8EAED', overflow: 'hidden' }}>
-                    <Mail style={{ width: 14, height: 14, color: '#EA4335', flexShrink: 0 }} />
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{person.email}</span>
-                  </a>
-                )}
-                {person.phone && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 600, color: '#5F6368', padding: '6px 10px', borderRadius: 8, background: '#F8F9FA', border: '1px solid #E8EAED' }}>
-                    <Phone style={{ width: 14, height: 14, color: '#34A853', flexShrink: 0 }} /> {person.phone}
+              {(() => {
+                const isValid = (val?: string) => val && val.trim() !== '' && val !== '#' && val !== 'https://linkedin.com/in/' && val !== 'https://github.com/';
+                const hasLinkedin = isValid(person.linkedin);
+                const hasGithub = isValid(person.github);
+                const hasPortfolio = isValid(person.portfolio) || isValid(person.website);
+                const hasEmail = isValid(person.email);
+                const hasPhone = isValid(person.phone);
+
+                if (!hasLinkedin && !hasGithub && !hasPortfolio && !hasEmail && !hasPhone) return null;
+
+                return (
+                  <div style={{ width: '100%', borderTop: '1px solid #F1F3F4', paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <p style={{ fontSize: 10, fontWeight: 700, color: '#9AA0A6', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Connect</p>
+                    {hasLinkedin && (
+                      <a href={person.linkedin} target="_blank" rel="noopener noreferrer"
+                        style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 600, color: '#5F6368', textDecoration: 'none', padding: '6px 10px', borderRadius: 8, background: '#F8F9FA', border: '1px solid #E8EAED' }}>
+                        <Linkedin style={{ width: 14, height: 14, color: '#0077B5' }} /> LinkedIn
+                      </a>
+                    )}
+                    {hasGithub && (
+                      <a href={person.github} target="_blank" rel="noopener noreferrer"
+                        style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 600, color: '#5F6368', textDecoration: 'none', padding: '6px 10px', borderRadius: 8, background: '#F8F9FA', border: '1px solid #E8EAED' }}>
+                        <Github style={{ width: 14, height: 14 }} /> GitHub
+                      </a>
+                    )}
+                    {hasPortfolio && (
+                      <a href={person.portfolio || person.website} target="_blank" rel="noopener noreferrer"
+                        style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 600, color: '#5F6368', textDecoration: 'none', padding: '6px 10px', borderRadius: 8, background: '#F8F9FA', border: '1px solid #E8EAED' }}>
+                        <Globe style={{ width: 14, height: 14, color: '#34A853' }} /> Portfolio
+                      </a>
+                    )}
+                    {hasEmail && (
+                      <a href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(person.email)}`}
+                        target="_blank" rel="noopener noreferrer"
+                        title="Send email via Gmail"
+                        style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 600, color: '#5F6368', textDecoration: 'none', padding: '6px 10px', borderRadius: 8, background: '#F8F9FA', border: '1px solid #E8EAED', overflow: 'hidden' }}>
+                        <Mail style={{ width: 14, height: 14, color: '#EA4335', flexShrink: 0 }} />
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{person.email}</span>
+                      </a>
+                    )}
+                    {hasPhone && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 600, color: '#5F6368', padding: '6px 10px', borderRadius: 8, background: '#F8F9FA', border: '1px solid #E8EAED' }}>
+                        <Phone style={{ width: 14, height: 14, color: '#34A853', flexShrink: 0 }} /> {person.phone}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+                );
+              })()}
             </div>
 
             {/* Right Column */}

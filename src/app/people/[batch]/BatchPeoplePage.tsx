@@ -150,43 +150,55 @@ function MemberCard({ person, batchSlug, badgesMap }: { person: Person; batchSlu
         <div style={{ width: '100%', height: 1, background: '#F1F3F4', marginBottom: 12 }} />
 
         {/* Social Icons */}
-        <div className="flex items-center gap-3 justify-center">
-          {person.linkedin && (
-            <a href={person.linkedin} target="_blank" rel="noopener noreferrer"
-              className="group/icon"
-              style={{ color: '#5F6368', transition: 'color 0.2s, transform 0.2s' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color='#0077B5'; (e.currentTarget as HTMLElement).style.transform='scale(1.25)'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color='#5F6368'; (e.currentTarget as HTMLElement).style.transform='scale(1)'; }}>
-              <Linkedin style={{ width: 16, height: 16 }} />
-            </a>
-          )}
-          {person.github && (
-            <a href={person.github} target="_blank" rel="noopener noreferrer"
-              style={{ color: '#5F6368', transition: 'color 0.2s, transform 0.2s' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color='#24292E'; (e.currentTarget as HTMLElement).style.transform='scale(1.25)'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color='#5F6368'; (e.currentTarget as HTMLElement).style.transform='scale(1)'; }}>
-              <Github style={{ width: 16, height: 16 }} />
-            </a>
-          )}
-          {(person.portfolio || person.website) && (
-            <a href={person.portfolio || person.website} target="_blank" rel="noopener noreferrer"
-              style={{ color: '#5F6368', transition: 'color 0.2s, transform 0.2s' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color='#34A853'; (e.currentTarget as HTMLElement).style.transform='scale(1.25)'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color='#5F6368'; (e.currentTarget as HTMLElement).style.transform='scale(1)'; }}>
-              <Globe style={{ width: 16, height: 16 }} />
-            </a>
-          )}
-          {person.email && (
-            <a href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(person.email)}`}
-              target="_blank" rel="noopener noreferrer"
-              title={`Email ${person.name}`}
-              style={{ color: '#5F6368', transition: 'color 0.2s, transform 0.2s' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color='#EA4335'; (e.currentTarget as HTMLElement).style.transform='scale(1.25)'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color='#5F6368'; (e.currentTarget as HTMLElement).style.transform='scale(1)'; }}>
-              <Mail style={{ width: 16, height: 16 }} />
-            </a>
-          )}
-        </div>
+        {(() => {
+          const isValid = (val?: string) => val && val.trim() !== '' && val !== '#' && val !== 'https://linkedin.com/in/' && val !== 'https://github.com/';
+          const hasLinkedin = isValid(person.linkedin);
+          const hasGithub = isValid(person.github);
+          const hasPortfolio = isValid(person.portfolio) || isValid(person.website);
+          const hasEmail = isValid(person.email);
+
+          if (!hasLinkedin && !hasGithub && !hasPortfolio && !hasEmail) return null;
+
+          return (
+            <div className="flex items-center gap-3 justify-center">
+              {hasLinkedin && (
+                <a href={person.linkedin} target="_blank" rel="noopener noreferrer"
+                  className="group/icon"
+                  style={{ color: '#5F6368', transition: 'color 0.2s, transform 0.2s' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color='#0077B5'; (e.currentTarget as HTMLElement).style.transform='scale(1.25)'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color='#5F6368'; (e.currentTarget as HTMLElement).style.transform='scale(1)'; }}>
+                  <Linkedin style={{ width: 16, height: 16 }} />
+                </a>
+              )}
+              {hasGithub && (
+                <a href={person.github} target="_blank" rel="noopener noreferrer"
+                  style={{ color: '#5F6368', transition: 'color 0.2s, transform 0.2s' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color='#24292E'; (e.currentTarget as HTMLElement).style.transform='scale(1.25)'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color='#5F6368'; (e.currentTarget as HTMLElement).style.transform='scale(1)'; }}>
+                  <Github style={{ width: 16, height: 16 }} />
+                </a>
+              )}
+              {hasPortfolio && (
+                <a href={person.portfolio || person.website} target="_blank" rel="noopener noreferrer"
+                  style={{ color: '#5F6368', transition: 'color 0.2s, transform 0.2s' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color='#34A853'; (e.currentTarget as HTMLElement).style.transform='scale(1.25)'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color='#5F6368'; (e.currentTarget as HTMLElement).style.transform='scale(1)'; }}>
+                  <Globe style={{ width: 16, height: 16 }} />
+                </a>
+              )}
+              {hasEmail && (
+                <a href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(person.email)}`}
+                  target="_blank" rel="noopener noreferrer"
+                  title={`Email ${person.name}`}
+                  style={{ color: '#5F6368', transition: 'color 0.2s, transform 0.2s' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color='#EA4335'; (e.currentTarget as HTMLElement).style.transform='scale(1.25)'; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color='#5F6368'; (e.currentTarget as HTMLElement).style.transform='scale(1)'; }}>
+                  <Mail style={{ width: 16, height: 16 }} />
+                </a>
+              )}
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
