@@ -30,6 +30,13 @@ function displayRole(person: Person): string {
 function MemberCard({ person, batchSlug, badgesMap }: { person: Person; batchSlug: string; badgesMap: Map<string, Badge> }) {
   const router = useRouter();
   const roleLabel = displayRole(person);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    if (typeof navigator !== 'undefined') {
+      setIsMobile(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+    }
+  }, []);
 
   const handleCardClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
@@ -187,8 +194,9 @@ function MemberCard({ person, batchSlug, badgesMap }: { person: Person; batchSlu
                 </a>
               )}
               {hasEmail && (
-                <a href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(person.email)}`}
-                  target="_blank" rel="noopener noreferrer"
+                <a href={isMobile ? `mailto:${person.email}` : `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(person.email)}`}
+                  target={isMobile ? undefined : "_blank"}
+                  rel={isMobile ? undefined : "noopener noreferrer"}
                   title={`Email ${person.name}`}
                   style={{ color: '#5F6368', transition: 'color 0.2s, transform 0.2s' }}
                   onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color='#EA4335'; (e.currentTarget as HTMLElement).style.transform='scale(1.25)'; }}

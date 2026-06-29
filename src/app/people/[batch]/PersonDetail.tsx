@@ -102,6 +102,7 @@ export default function PersonDetail({ memberIdOverride, batchSlugOverride, onBa
   const [badgesMap, setBadgesMap] = useState<Map<string, Badge>>(new Map());
   const [loading, setLoading] = useState(true);
   const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 });
+  const [isMobile, setIsMobile] = useState(false);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     setMouseOffset({ x: e.clientX - window.innerWidth / 2, y: e.clientY - window.innerHeight / 2 });
@@ -111,6 +112,12 @@ export default function PersonDetail({ memberIdOverride, batchSlugOverride, onBa
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, [handleMouseMove]);
+
+  useEffect(() => {
+    if (typeof navigator !== 'undefined') {
+      setIsMobile(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+    }
+  }, []);
 
   useEffect(() => {
     async function fetchPerson() {
@@ -315,9 +322,10 @@ export default function PersonDetail({ memberIdOverride, batchSlugOverride, onBa
                       </a>
                     )}
                     {hasEmail && (
-                      <a href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(person.email)}`}
-                        target="_blank" rel="noopener noreferrer"
-                        title="Send email via Gmail"
+                      <a href={isMobile ? `mailto:${person.email}` : `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(person.email)}`}
+                        target={isMobile ? undefined : "_blank"}
+                        rel={isMobile ? undefined : "noopener noreferrer"}
+                        title={isMobile ? "Email via native app" : "Send email via Gmail"}
                         style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 600, color: '#5F6368', textDecoration: 'none', padding: '6px 10px', borderRadius: 8, background: '#F8F9FA', border: '1px solid #E8EAED', overflow: 'hidden' }}>
                         <Mail style={{ width: 14, height: 14, color: '#EA4335', flexShrink: 0 }} />
                         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{person.email}</span>
