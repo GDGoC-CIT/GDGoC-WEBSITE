@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { db, Person } from '@/lib/db';
+import Cropper from 'react-easy-crop';
+import getCroppedImg from '@/lib/cropImage';
 import { 
   Search, Plus, Edit, Trash2, Camera, ArrowUp, ArrowDown,
-  X, ShieldAlert, KeyRound, CheckCircle2, UserPlus, Upload, Settings
+  X, ShieldAlert, KeyRound, CheckCircle2, UserPlus, Upload, Settings, RotateCw
 } from 'lucide-react';
 
 const DEPARTMENTS = ['M.Sc.Software Systems','M.Sc.Data Science','M.Sc.Artificial Intelligence and Machine Learining','M.Sc.DCS','CSE', 'IT', 'ECE', 'EEE', 'MECH', 'CIVIL', 'AIDS', 'AIML'];
@@ -94,6 +96,14 @@ export default function PeopleAdminPage() {
   // Feedback Messages
   const [formFeedback, setFormFeedback] = useState({ type: '', msg: '' });
   const [slugError, setSlugError] = useState('');
+
+  // Image Crop States
+  const [imageToCrop, setImageToCrop] = useState('');
+  const [isCropModalOpen, setIsCropModalOpen] = useState(false);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [rotation, setRotation] = useState(0);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
 
 
   // Slug utility: generate slug from name
@@ -247,23 +257,46 @@ export default function PeopleAdminPage() {
     p.department.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // File Upload Preview Handler
+  // File Upload Handler (Opens Cropper)
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 1.5 * 1024 * 1024) {
-      alert("Image is too large. Please upload an image smaller than 1.5MB for storage.");
+    if (file.size > 5 * 1024 * 1024) { // Increased to 5MB to allow cropping original high-res images
+      alert("Image is too large. Please upload an image smaller than 5MB.");
       return;
     }
 
     const reader = new FileReader();
     reader.onloadend = () => {
       if (typeof reader.result === 'string') {
-        setAvatar(reader.result);
+        setImageToCrop(reader.result);
+        setIsCropModalOpen(true);
+        // Reset crop states
+        setCrop({ x: 0, y: 0 });
+        setZoom(1);
+        setRotation(0);
       }
     };
     reader.readAsDataURL(file);
+    // Reset file input
+    e.target.value = '';
+  };
+
+  const handleCropComplete = useCallback((croppedArea: any, croppedAreaPixels: any) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
+
+  const saveCroppedImage = async () => {
+    try {
+      const croppedImageBase64 = await getCroppedImg(imageToCrop, croppedAreaPixels, rotation);
+      setAvatar(croppedImageBase64);
+      setIsCropModalOpen(false);
+      setImageToCrop('');
+    } catch (e) {
+      console.error(e);
+      alert('Failed to crop image.');
+    }
   };
 
   // Open Form for Adding New Member
@@ -999,6 +1032,91 @@ export default function PeopleAdminPage() {
           </div>
         )}
       </main>
+
+      {/* ----------------------------------------------------
+          Image Cropper Modal Dialog
+          ---------------------------------------------------- */}
+      {isCropModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col h-[85vh]">
+            <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-gray-50/50">
+              <h3 className="text-lg font-bold text-gray-900">Crop Photo</h3>
+              <button onClick={() => setIsCropModalOpen(false)} className="p-2 text-gray-400 hover:bg-gray-200 rounded-full">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="relative flex-1 bg-black">
+              <Cropper
+                image={imageToCrop}
+                crop={crop}
+                zoom={zoom}
+                rotation={rotation}
+                aspect={1}
+                onCropChange={setCrop}
+                onCropComplete={handleCropComplete}
+                onZoomChange={setZoom}
+                onRotationChange={setRotation}
+                cropShape="round"
+                showGrid={false}
+              />
+            </div>
+
+            <div className="p-5 border-t border-gray-100 bg-white space-y-4">
+              <div>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Zoom</label>
+                <input
+                  type="range"
+                  value={zoom}
+                  min={1}
+                  max={3}
+                  step={0.1}
+                  aria-labelledby="Zoom"
+                  onChange={(e) => setZoom(Number(e.target.value))}
+                  className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gdg-blue"
+                />
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="flex-1">
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 block">Rotation</label>
+                  <input
+                    type="range"
+                    value={rotation}
+                    min={0}
+                    max={360}
+                    step={1}
+                    aria-labelledby="Rotation"
+                    onChange={(e) => setRotation(Number(e.target.value))}
+                    className="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-gdg-blue"
+                  />
+                </div>
+                <button 
+                  onClick={() => setRotation((prev) => (prev + 90) % 360)}
+                  className="mt-6 p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-colors"
+                  title="Rotate 90 degrees"
+                >
+                  <RotateCw className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
+              <button
+                onClick={() => setIsCropModalOpen(false)}
+                className="px-5 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-200 rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveCroppedImage}
+                className="px-6 py-2.5 bg-gdg-blue text-white text-sm font-bold rounded-xl hover:bg-blue-700 shadow-sm transition-all"
+              >
+                Crop & Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ----------------------------------------------------
           Add / Edit Member Modal Dialog
