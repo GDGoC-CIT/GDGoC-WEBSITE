@@ -856,7 +856,7 @@ export default function PeopleAdminPage() {
 
                             {/* Academic Detail */}
                             <td className="px-6 py-3.5 whitespace-nowrap text-gray-550">
-                              {person.department} &bull; Year {person.year}
+                              {person.department} &bull; {person.year === 'Staff' ? 'Staff' : `Year ${person.year}`}
                             </td>
 
                             {/* Actions */}
@@ -1114,7 +1114,14 @@ export default function PeopleAdminPage() {
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Role Title</label>
                   <select
                     value={role}
-                    onChange={(e) => setRole(e.target.value)}
+                    onChange={(e) => {
+                      const selectedRole = e.target.value;
+                      setRole(selectedRole);
+                      // Auto-set year to Staff for Faculty Advisor (no academic year applicable)
+                      if (selectedRole === 'Faculty Advisor') {
+                        setYear('Staff');
+                      }
+                    }}
                     className="w-full px-4 py-2 border border-gray-250 rounded-xl text-xs focus:outline-none focus:border-gdg-blue bg-white"
                     required
                   >
@@ -1159,20 +1166,23 @@ export default function PeopleAdminPage() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Academic Year</label>
-                  <select
-                    value={year}
-                    onChange={(e) => setYear(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-250 rounded-xl text-xs focus:outline-none focus:border-gdg-blue bg-white"
-                  >
-                    {YEARS.map(y => (
-                      <option key={y} value={y}>{y}</option>
-                    ))}
-                  </select>
-                </div>
+                {/* Academic Year — hidden for Faculty Advisor (staff roles don't have an academic year) */}
+                {role.trim() !== 'Faculty Advisor' && (
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Academic Year</label>
+                    <select
+                      value={year}
+                      onChange={(e) => setYear(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-250 rounded-xl text-xs focus:outline-none focus:border-gdg-blue bg-white"
+                    >
+                      {YEARS.map(y => (
+                        <option key={y} value={y}>{y}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
-                <div>
+                <div className={role.trim() === 'Faculty Advisor' ? 'sm:col-span-2' : ''}>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Biography Description</label>
                   <textarea
                     value={about}

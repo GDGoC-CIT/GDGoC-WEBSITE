@@ -7,6 +7,13 @@ import GlobalBackground from "@/components/GlobalBackground";
 export const metadata: Metadata = {
   title: "GDG on Campus CIT — Community Portal",
   description: "The official community portal for Google Developer Groups on Campus, Coimbatore Institute of Technology.",
+  icons: {
+    icon: [
+      { url: '/gdgoc-logo.png', type: 'image/png', sizes: '512x512' },
+    ],
+    apple: '/gdgoc-logo.png',
+    shortcut: '/gdgoc-logo.png',
+  },
 };
 
 export default function RootLayout({

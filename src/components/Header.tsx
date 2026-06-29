@@ -39,6 +39,12 @@ export default function Header() {
         <div className="flex justify-between h-16 items-center">
           {/* Logo & Wordmark */}
           <Link href="/home" className="flex items-center space-x-2">
+            {/* GDGoC Logo Image */}
+            <img
+              src="/gdgoc-logo.png"
+              alt="GDGoC Logo"
+              className="w-15 h-15 object-contain flex-shrink-0"
+            />
             <div className="flex items-center text-xl font-bold tracking-tight font-display">
               <span className="text-gdg-blue font-extrabold">G</span>
               <span className="text-gdg-red font-extrabold">D</span>

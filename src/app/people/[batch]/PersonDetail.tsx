@@ -357,8 +357,12 @@ export default function PersonDetail({ memberIdOverride, batchSlugOverride, onBa
                     <Layers style={{ width: 18, height: 18, color: '#34A853' }} />
                   </div>
                   <div>
-                    <p style={{ fontSize: 9, fontWeight: 700, color: '#9AA0A6', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Year</p>
-                    <p style={{ fontSize: 13, fontWeight: 700, color: '#202124' }}>{person.year} Year</p>
+                    {person.year !== 'Staff' && (
+                      <p style={{ fontSize: 9, fontWeight: 700, color: '#9AA0A6', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Year</p>
+                    )}
+                    <p style={{ fontSize: 13, fontWeight: 700, color: '#202124' }}>
+                      {person.year === 'Staff' ? 'Staff' : `${person.year} Year`}
+                    </p>
                   </div>
                 </div>
               </div>
