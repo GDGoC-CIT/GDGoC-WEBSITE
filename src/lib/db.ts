@@ -1037,9 +1037,18 @@ class DatabaseService {
       }
     } else {
       try {
+        if (typeof window !== 'undefined') {
+          const cached = sessionStorage.getItem('gdg_people_supabase_cache');
+          if (cached) {
+            return JSON.parse(cached);
+          }
+        }
         const { data, error } = await supabase!.from('people').select('*').order('name');
         if (error) throw error;
         list = data || [];
+        if (typeof window !== 'undefined' && list.length > 0) {
+          sessionStorage.setItem('gdg_people_supabase_cache', JSON.stringify(list));
+        }
       } catch (err) {
         console.warn("Supabase 'people' query failed, falling back to LocalStorage:", err);
         if (typeof window === 'undefined') return initialPeople;
@@ -1156,6 +1165,9 @@ class DatabaseService {
       return newPerson;
     }
     try {
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('gdg_people_supabase_cache');
+      }
       const { data, error } = await supabase!.from('people').insert([person]).select().single();
       if (error) throw error;
       return data;
@@ -1179,6 +1191,9 @@ class DatabaseService {
   }
 
   async updatePerson(id: string, updates: Partial<Person>): Promise<Person> {
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('gdg_people_supabase_cache');
+    }
     if (this.isMock) {
       const people = await this.getPeople();
       const index = people.findIndex(p => p.id === id);
@@ -1246,6 +1261,9 @@ class DatabaseService {
   }
   async deletePerson(id: string): Promise<void> {
     console.log("DatabaseService: deleting person with ID:", id);
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('gdg_people_supabase_cache');
+    }
     if (this.isMock) {
       const people = await this.getPeople();
       console.log("Mock Mode: total people before filter =", people.length);

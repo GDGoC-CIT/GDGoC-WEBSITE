@@ -72,13 +72,36 @@ export default async function getCroppedImg(
     pixelCrop.height
   )
 
-  // set canvas width to final desired crop size - this will clear existing context
-  canvas.width = pixelCrop.width
-  canvas.height = pixelCrop.height
+  // set canvas width to final desired downscaled crop size (e.g. max 256px width/height)
+  const maxDimension = 256
+  let targetWidth = pixelCrop.width
+  let targetHeight = pixelCrop.height
 
-  // paste generated rotate image at the top left corner
-  ctx.putImageData(data, 0, 0)
+  if (targetWidth > maxDimension || targetHeight > maxDimension) {
+    if (targetWidth > targetHeight) {
+      targetHeight = Math.round((targetHeight * maxDimension) / targetWidth)
+      targetWidth = maxDimension
+    } else {
+      targetWidth = Math.round((targetWidth * maxDimension) / targetHeight)
+      targetHeight = maxDimension
+    }
+  }
 
-  // As a base64 string
-  return canvas.toDataURL('image/jpeg', 0.9)
+  // Draw the full-sized crop onto a temporary canvas first
+  const tempCanvas = document.createElement('canvas')
+  const tempCtx = tempCanvas.getContext('2d')
+  if (!tempCtx) return ''
+  tempCanvas.width = pixelCrop.width
+  tempCanvas.height = pixelCrop.height
+  tempCtx.putImageData(data, 0, 0)
+
+  // set target canvas to the downscaled resolution
+  canvas.width = targetWidth
+  canvas.height = targetHeight
+
+  // draw the image downscaled
+  ctx.drawImage(tempCanvas, 0, 0, pixelCrop.width, pixelCrop.height, 0, 0, targetWidth, targetHeight)
+
+  // As a base64 string with 70% quality compression (looks clean, tiny file size)
+  return canvas.toDataURL('image/jpeg', 0.7)
 }
