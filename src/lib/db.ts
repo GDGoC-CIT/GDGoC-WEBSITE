@@ -86,7 +86,6 @@ export interface Person {
   email: string;
   phone?: string;
   avatar: string;
-  verified?: boolean;
   is_team_lead?: boolean;
   display_order?: number;
   badges?: string[];
@@ -287,7 +286,6 @@ const initialPeople: Person[] = [
     github: "https://github.com",
     email: "kishores@cit.edu.in",
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200",
-    verified: true,
     display_order: 1
   },
   {
@@ -303,7 +301,6 @@ const initialPeople: Person[] = [
     github: "https://github.com",
     email: "rajeshwari@cit.edu.in",
     avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200",
-    verified: true,
     display_order: 2
   },
   {
@@ -320,7 +317,6 @@ const initialPeople: Person[] = [
     portfolio: "https://arunkumar.dev",
     email: "arun@cit.edu.in",
     avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200",
-    verified: true,
     display_order: 1
   },
   {
@@ -336,7 +332,6 @@ const initialPeople: Person[] = [
     github: "https://github.com",
     email: "divya@cit.edu.in",
     avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=200",
-    verified: true,
     display_order: 2
   },
   {
@@ -352,7 +347,6 @@ const initialPeople: Person[] = [
     github: "https://github.com",
     email: "sanjay@cit.edu.in",
     avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=200",
-    verified: false,
     display_order: 1
   },
   {
@@ -369,7 +363,6 @@ const initialPeople: Person[] = [
     portfolio: "https://priyadesign.me",
     email: "priya@cit.edu.in",
     avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200",
-    verified: false,
     display_order: 2
   },
   {
@@ -385,7 +378,6 @@ const initialPeople: Person[] = [
     github: "https://github.com",
     email: "vijay@cit.edu.in",
     avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200",
-    verified: true,
     display_order: 1
   },
   {
@@ -546,7 +538,6 @@ const initialPeople: Person[] = [
     github: "https://github.com",
     email: "kishores@cit.edu.in",
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200",
-    verified: true,
     display_order: 1
   },
   {
@@ -562,7 +553,6 @@ const initialPeople: Person[] = [
     github: "https://github.com",
     email: "manoj@cit.edu.in",
     avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200",
-    verified: true,
     display_order: 1
   },
   {
@@ -595,7 +585,6 @@ const initialPeople: Person[] = [
     github: "https://github.com",
     email: "kishores@cit.edu.in",
     avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200",
-    verified: true,
     display_order: 1
   },
   {
@@ -611,7 +600,6 @@ const initialPeople: Person[] = [
     github: "https://github.com",
     email: "abhishek@cit.edu.in",
     avatar: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&q=80&w=200",
-    verified: true,
     display_order: 1
   }
 ];

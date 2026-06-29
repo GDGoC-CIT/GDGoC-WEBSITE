@@ -86,7 +86,7 @@ export default function PeopleAdminPage() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [avatar, setAvatar] = useState('');
-  const [verified, setVerified] = useState(false);
+
   const [isTeamLead, setIsTeamLead] = useState(false);
   const [memberBadges, setMemberBadges] = useState<string[]>([]);
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
@@ -284,7 +284,7 @@ export default function PeopleAdminPage() {
     setEmail('');
     setPhone('');
     setAvatar('');
-    setVerified(false);
+
     setIsTeamLead(false);
     setMemberBadges([]);
     setSlugManuallyEdited(false);
@@ -311,7 +311,7 @@ export default function PeopleAdminPage() {
     setEmail(person.email || '');
     setPhone(person.phone || '');
     setAvatar(person.avatar || '');
-    setVerified(person.verified || false);
+
     setIsTeamLead(person.is_team_lead || false);
     setMemberBadges(person.badges || []);
     setFormFeedback({ type: '', msg: '' });
@@ -396,7 +396,7 @@ export default function PeopleAdminPage() {
       email: email.trim(),
       phone: phone.trim() || undefined,
       avatar: avatar.trim(),
-      verified,
+
       is_team_lead: isTeamLead,
       badges: memberBadges
     };
@@ -838,9 +838,7 @@ export default function PeopleAdminPage() {
                             <td className="px-6 py-3.5 whitespace-nowrap font-bold text-gray-900">
                               <div className="flex items-center gap-1.5">
                                 {person.name}
-                                {person.verified && (
-                                  <span className="w-2 h-2 rounded-full bg-gdg-blue" title="Verified Leader" />
-                                )}
+
                                 {person.is_team_lead && (
                                   <span className="px-1.5 py-0.5 text-[8px] font-extrabold bg-gdg-blue text-white rounded-full tracking-wider">
                                     LEAD
@@ -1307,19 +1305,7 @@ export default function PeopleAdminPage() {
                     <p className="text-[10px] text-gray-400 italic">No custom badges defined for this batch yet. Create some using the "Manage Badges" button.</p>
                   )}
                   
-                  {/* Keep verification option too for backward compatibility / badge mapping */}
-                  <div className="flex items-center gap-2 mt-3">
-                    <input
-                      type="checkbox"
-                      id="verifiedCheck"
-                      checked={verified}
-                      onChange={(e) => setVerified(e.target.checked)}
-                      className="w-4 h-4 text-gdg-blue border-gray-250 rounded focus:ring-gdg-blue"
-                    />
-                    <label htmlFor="verifiedCheck" className="text-xs font-bold text-gray-700 cursor-pointer select-none">
-                      Assign Verified Leader Badge
-                    </label>
-                  </div>
+
                 </div>
 
 

@@ -4,12 +4,12 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { db, Person, Badge } from '@/lib/db';
-import { Linkedin, Github, Mail, Globe, ShieldCheck, ChevronDown, Users } from 'lucide-react';
+import { db, Person, Badge, Batch } from '@/lib/db';
+import { Linkedin, Github, Mail, Globe, ChevronDown, Users } from 'lucide-react';
 import PersonDetail from './PersonDetail';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const BATCH_SLUGS = ['2026-27', '2027-28', '2028-29'];
+// Batch slugs are now fetched dynamically from the DB (see state below)
 const STATIC_ROLES = ['Faculty Advisor', 'Secretary', 'Joint Secretary', 'Treasurer'];
 
 // Helpers for batch slug normalization
@@ -94,14 +94,11 @@ function MemberCard({ person, batchSlug, badgesMap }: { person: Person; batchSlu
           />
         </div>
 
-        {/* Verified Badge + Name */}
+        {/* Name */}
         <div className="flex items-center gap-1.5 justify-center mb-1">
           <span style={{ fontSize: 14, fontWeight: 700, color: '#202124', lineHeight: 1.3 }}>
             {person.name}
           </span>
-          {person.verified && (
-            <ShieldCheck style={{ width: 14, height: 14, color: '#1A73E8', flexShrink: 0 }} />
-          )}
         </div>
 
         {/* Role */}
@@ -207,6 +204,20 @@ export default function BatchPeoplePage() {
   const [badgesMap, setBadgesMap] = useState<Map<string, Badge>>(new Map());
   const [loading, setLoading] = useState(true);
   const [batchOpen, setBatchOpen] = useState(false);
+  const [batches, setBatches] = useState<Batch[]>([]);
+
+  // Fetch batches list from DB (same source as admin panel)
+  useEffect(() => {
+    async function loadBatches() {
+      try {
+        const fetchedBatches = await db.getBatches();
+        setBatches(fetchedBatches);
+      } catch (err) {
+        console.error('Failed to load batches:', err);
+      }
+    }
+    loadBatches();
+  }, []);
 
   // Fetch directory and ordering values
   useEffect(() => {
@@ -331,11 +342,11 @@ export default function BatchPeoplePage() {
                   background: '#fff', border: '1px solid #DADCE0', borderRadius: 12,
                   boxShadow: '0 8px 32px rgba(60,64,67,0.18)', overflow: 'hidden',
                 }}>
-                  {BATCH_SLUGS.map(slug => {
-                    const name = slugToBatchName(slug);
+                  {batches.length > 0 ? batches.map(batch => {
+                    const slug = batchNameToSlug(batch.name);
                     return (
                       <button 
-                        key={slug} 
+                        key={batch.id} 
                         onClick={() => {
                           setBatchOpen(false);
                           router.push(`/people/${slug}`);
@@ -351,10 +362,12 @@ export default function BatchPeoplePage() {
                         onMouseEnter={e => { if (slug !== batchSlug) (e.currentTarget as HTMLElement).style.background = '#F1F3F4'; }}
                         onMouseLeave={e => { if (slug !== batchSlug) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                       >
-                        {name}
+                        {batch.name}
                       </button>
                     );
-                  })}
+                  }) : (
+                    <div style={{ padding: '10px 20px', fontSize: 13, color: '#5F6368' }}>No batches found</div>
+                  )}
                 </div>
               )}
             </div>

@@ -7,7 +7,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { db, Person, Badge } from '@/lib/db';
 import {
-  Linkedin, Github, Mail, Globe, ShieldCheck,
+  Linkedin, Github, Mail, Globe,
   ChevronLeft, Phone, GraduationCap, Layers, FileText, CheckCircle2, Sparkles, ArrowLeft
 } from 'lucide-react';
 
@@ -252,12 +252,6 @@ export default function PersonDetail({ memberIdOverride, batchSlugOverride, onBa
                 />
               </div>
 
-              {/* Verified */}
-              {person.verified && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 700, color: '#1A73E8', background: '#E8F0FE', border: '1px solid #C5D9F9', borderRadius: 999, padding: '4px 12px' }}>
-                  <ShieldCheck style={{ width: 13, height: 13 }} /> Verified Leader
-                </div>
-              )}
 
               {/* Social Links */}
               <div style={{ width: '100%', borderTop: '1px solid #F1F3F4', paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
