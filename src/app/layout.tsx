@@ -14,6 +14,9 @@ export const metadata: Metadata = {
     apple: '/gdgoc-logo.png',
     shortcut: '/gdgoc-logo.png',
   },
+  verification: {
+    google: "8VL3tIeIlUXN6kKVIetM60WczsGXjaShFBN-5QTphlc",
+  },
 };
 
 export default function RootLayout({
