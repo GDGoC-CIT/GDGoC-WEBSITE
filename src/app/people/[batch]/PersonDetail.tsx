@@ -223,15 +223,10 @@ export default function PersonDetail({ memberIdOverride, batchSlugOverride, onBa
           </Link>
         )}
 
-        {/* Profile Card */}
         <div style={{ background: '#fff', borderRadius: 24, border: '1px solid #E8EAED', boxShadow: '0 4px 24px rgba(60,64,67,0.10)', overflow: 'hidden' }}>
-          {/* Top color bar */}
           <div style={{ height: 5, background: 'linear-gradient(90deg, #4285F4 25%, #EA4335 25% 50%, #FBBC05 50% 75%, #34A853 75%)' }} />
-
-          <div style={{ padding: '40px 40px 40px', display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 48 }} className="profile-grid">
-            {/* Left Column */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-              {/* Team Lead Badge */}
+          <div className="profile-grid">
+            <div className="profile-avatar-sec">
               {isLead && (
                 <div style={{
                   background: 'linear-gradient(135deg, #1A73E8, #4285F4)',
@@ -242,8 +237,6 @@ export default function PersonDetail({ memberIdOverride, batchSlugOverride, onBa
                   TEAM LEAD
                 </div>
               )}
-
-              {/* Avatar */}
               <div style={{ width: 148, height: 148, borderRadius: 16, overflow: 'hidden', border: '4px solid #E8EAED', boxShadow: '0 6px 24px rgba(60,64,67,0.14)' }}>
                 <img
                   src={person.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(person.name)}&background=4285F4&color=fff&size=300`}
@@ -251,22 +244,58 @@ export default function PersonDetail({ memberIdOverride, batchSlugOverride, onBa
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
               </div>
+            </div>
 
+            <div className="profile-name-sec">
+              <h1 style={{ fontSize: 28, fontWeight: 800, color: '#202124', letterSpacing: '-0.02em', marginBottom: 10 }}>
+                {person.name}
+              </h1>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }} className="profile-badges-row">
+                <span style={{ fontSize: 12, fontWeight: 700, color: '#fff', background: chipColor, borderRadius: 999, padding: '4px 14px' }}>
+                  {roleLabel}
+                </span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: '#5F6368', background: '#F1F3F4', border: '1px solid #E8EAED', borderRadius: 999, padding: '4px 14px' }}>
+                  Batch {person.batch}
+                </span>
+              </div>
+              {person.badges && person.badges.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }} className="profile-custom-badges">
+                  {person.badges.map(badgeId => {
+                    const badge = badgesMap.get(badgeId);
+                    if (!badge) return null;
+                    return (
+                      <span key={badgeId} style={{
+                        fontSize: 11, fontWeight: 800,
+                        color: badge.color,
+                        background: `${badge.color}18`,
+                        border: `1px solid ${badge.color}44`,
+                        borderRadius: 999,
+                        padding: '3px 12px',
+                        letterSpacing: '0.04em',
+                      }}>
+                        {badge.icon && <span style={{ marginRight: 4 }}>{badge.icon}</span>}
+                        {badge.name}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
-              {/* Social Links */}
-              {(() => {
-                const isValid = (val?: string) => val && val.trim() !== '' && val !== '#' && val !== 'https://linkedin.com/in/' && val !== 'https://github.com/';
-                const hasLinkedin = isValid(person.linkedin);
-                const hasGithub = isValid(person.github);
-                const hasPortfolio = isValid(person.portfolio) || isValid(person.website);
-                const hasEmail = isValid(person.email);
-                const hasPhone = isValid(person.phone);
+            {(() => {
+              const isValid = (val?: string) => val && val.trim() !== '' && val !== '#' && val !== 'https://linkedin.com/in/' && val !== 'https://github.com/';
+              const hasLinkedin = isValid(person.linkedin);
+              const hasGithub = isValid(person.github);
+              const hasPortfolio = isValid(person.portfolio) || isValid(person.website);
+              const hasEmail = isValid(person.email);
+              const hasPhone = isValid(person.phone);
 
-                if (!hasLinkedin && !hasGithub && !hasPortfolio && !hasEmail && !hasPhone) return null;
+              if (!hasLinkedin && !hasGithub && !hasPortfolio && !hasEmail && !hasPhone) return null;
 
-                return (
-                  <div style={{ width: '100%', borderTop: '1px solid #F1F3F4', paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    <p style={{ fontSize: 10, fontWeight: 700, color: '#9AA0A6', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Connect</p>
+              return (
+                <div className="profile-connect-sec">
+                  <p style={{ fontSize: 10, fontWeight: 700, color: '#9AA0A6', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4 }}>Connect</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
                     {hasLinkedin && (
                       <a href={person.linkedin} target="_blank" rel="noopener noreferrer"
                         style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 600, color: '#5F6368', textDecoration: 'none', padding: '6px 10px', borderRadius: 8, background: '#F8F9FA', border: '1px solid #E8EAED' }}>
@@ -300,62 +329,21 @@ export default function PersonDetail({ memberIdOverride, batchSlugOverride, onBa
                       </div>
                     )}
                   </div>
-                );
-              })()}
+                </div>
+              );
+            })()}
+
+            <div className="profile-bio-sec">
+              <h3 style={{ fontSize: 10, fontWeight: 700, color: '#9AA0A6', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <FileText style={{ width: 13, height: 13 }} /> Biography
+              </h3>
+              <p style={{ fontSize: 13, color: '#3C4043', lineHeight: 1.75, background: '#F8F9FA', border: '1px solid #E8EAED', borderRadius: 12, padding: '14px 16px' }}>
+                {person.about || 'No biography provided yet.'}
+              </p>
             </div>
 
-            {/* Right Column */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-              {/* Name + Role */}
-              <div>
-                <h1 style={{ fontSize: 28, fontWeight: 800, color: '#202124', letterSpacing: '-0.02em', marginBottom: 10 }}>
-                  {person.name}
-                </h1>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: '#fff', background: chipColor, borderRadius: 999, padding: '4px 14px' }}>
-                    {roleLabel}
-                  </span>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: '#5F6368', background: '#F1F3F4', border: '1px solid #E8EAED', borderRadius: 999, padding: '4px 14px' }}>
-                    Batch {person.batch}
-                  </span>
-                </div>
-                {/* All Custom Badges */}
-                {person.badges && person.badges.length > 0 && (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
-                    {person.badges.map(badgeId => {
-                      const badge = badgesMap.get(badgeId);
-                      if (!badge) return null;
-                      return (
-                        <span key={badgeId} style={{
-                          fontSize: 11, fontWeight: 800,
-                          color: badge.color,
-                          background: `${badge.color}18`,
-                          border: `1px solid ${badge.color}44`,
-                          borderRadius: 999,
-                          padding: '3px 12px',
-                          letterSpacing: '0.04em',
-                        }}>
-                          {badge.icon && <span style={{ marginRight: 4 }}>{badge.icon}</span>}
-                          {badge.name}
-                        </span>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* About */}
-              <div>
-                <h3 style={{ fontSize: 10, fontWeight: 700, color: '#9AA0A6', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <FileText style={{ width: 13, height: 13 }} /> Biography
-                </h3>
-                <p style={{ fontSize: 13, color: '#3C4043', lineHeight: 1.75, background: '#F8F9FA', border: '1px solid #E8EAED', borderRadius: 12, padding: '14px 16px' }}>
-                  {person.about || 'No biography provided yet.'}
-                </p>
-              </div>
-
-              {/* Academic Info */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div className="profile-academic-sec">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }} className="profile-academic-grid">
                 <div style={{ background: '#fff', border: '1px solid #E8EAED', borderRadius: 12, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12, boxShadow: '0 1px 4px rgba(60,64,67,0.06)' }}>
                   <div style={{ width: 36, height: 36, borderRadius: 10, background: '#E8F0FE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <GraduationCap style={{ width: 18, height: 18, color: '#1A73E8' }} />
@@ -379,23 +367,22 @@ export default function PersonDetail({ memberIdOverride, batchSlugOverride, onBa
                   </div>
                 </div>
               </div>
-
-              {/* Skills */}
-              {person.skills && person.skills.length > 0 && (
-                <div>
-                  <h3 style={{ fontSize: 10, fontWeight: 700, color: '#9AA0A6', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Sparkles style={{ width: 13, height: 13, color: '#FBBC05' }} /> Skills & Expertise
-                  </h3>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                    {person.skills.map((skill, i) => (
-                      <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 600, color: '#3C4043', background: '#fff', border: '1px solid #E8EAED', borderRadius: 8, padding: '4px 10px', boxShadow: '0 1px 3px rgba(60,64,67,0.06)' }}>
-                        <CheckCircle2 style={{ width: 11, height: 11, color: '#34A853' }} /> {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
+
+            {person.skills && person.skills.length > 0 && (
+              <div className="profile-skills-sec">
+                <h3 style={{ fontSize: 10, fontWeight: 700, color: '#9AA0A6', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Sparkles style={{ width: 13, height: 13, color: '#FBBC05' }} /> Skills & Expertise
+                </h3>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }} className="profile-skills-list">
+                  {person.skills.map((skill, i) => (
+                    <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 600, color: '#3C4043', background: '#fff', border: '1px solid #E8EAED', borderRadius: 8, padding: '4px 10px', boxShadow: '0 1px 3px rgba(60,64,67,0.06)' }}>
+                      <CheckCircle2 style={{ width: 11, height: 11, color: '#34A853' }} /> {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </main>
@@ -404,8 +391,70 @@ export default function PersonDetail({ memberIdOverride, batchSlugOverride, onBa
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .profile-grid {
+          padding: 40px;
+          display: grid;
+          grid-template-columns: 1fr 2fr;
+          gap: 48px;
+        }
+        .profile-avatar-sec {
+          grid-column: 1;
+          grid-row: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 16px;
+        }
+        .profile-connect-sec {
+          grid-column: 1;
+          grid-row: 2;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          width: 100%;
+          border-top: 1px solid #F1F3F4;
+          padding-top: 16px;
+        }
+        .profile-name-sec {
+          grid-column: 2;
+          grid-row: 1;
+          display: flex;
+          flex-direction: column;
+        }
+        .profile-bio-sec {
+          grid-column: 2;
+          grid-row: 2;
+        }
+        .profile-academic-sec {
+          grid-column: 2;
+          grid-row: 3;
+        }
+        .profile-skills-sec {
+          grid-column: 2;
+          grid-row: 4;
+        }
+
         @media (max-width: 640px) {
-          .profile-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
+          .profile-grid {
+            grid-template-columns: 1fr !important;
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 24px !important;
+            padding: 24px !important;
+          }
+          .profile-avatar-sec { order: 1; }
+          .profile-name-sec { order: 2; text-align: center; align-items: center; }
+          .profile-connect-sec { order: 3; border-top: 1px solid #F1F3F4; padding-top: 16px; }
+          .profile-bio-sec { order: 4; }
+          .profile-academic-sec { order: 5; }
+          .profile-skills-sec { order: 6; }
+          .profile-badges-row, .profile-custom-badges, .profile-skills-list {
+            justify-content: center;
+          }
+          .profile-academic-grid {
+            grid-template-columns: 1fr !important;
+          }
         }
         @media (max-width: 768px) {
           .profile-bg-shape:not(.mobile-visible) { display: none !important; }
