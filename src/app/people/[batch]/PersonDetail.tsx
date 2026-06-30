@@ -298,9 +298,9 @@ export default function PersonDetail({ memberIdOverride, batchSlugOverride, onBa
                         </a>
                       )}
                       {hasPhone && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 600, color: '#5F6368', padding: '6px 10px', borderRadius: 8, background: '#F8F9FA', border: '1px solid #E8EAED' }}>
+                        <a href={isMobile ? `tel:${person.phone}` : undefined} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, fontWeight: 600, color: '#5F6368', textDecoration: 'none', padding: '6px 10px', borderRadius: 8, background: '#F8F9FA', border: '1px solid #E8EAED' }}>
                           <Phone style={{ width: 14, height: 14, color: '#34A853', flexShrink: 0 }} /> {person.phone}
-                        </div>
+                        </a>
                       )}
                     </div>
                   </div>
