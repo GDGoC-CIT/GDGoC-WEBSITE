@@ -337,5 +337,27 @@ INSERT INTO tasks (id, title, description, status, priority, tags, position, cre
 ('task-7', 'Achievement Showcase', 'Rich achievements page for student wins', 'done', 'low', ARRAY['ui','content'], 2, 'admin-seed'),
 ('task-8', 'Mobile Responsive Testing', 'Test and fix responsive layouts', 'backlog', 'low', ARRAY['testing','mobile'], 1, 'admin-seed');
 
+-- STEP 5: CREATE DATABASE INDEXES FOR OPTIMAL QUERY PERFORMANCE
+
+-- Index for Events sorting/filtering (date, status)
+CREATE INDEX IF NOT EXISTS idx_events_date_status ON events(date, status);
+
+-- Index for roles batch filter and ordering (batch, display_order)
+CREATE INDEX IF NOT EXISTS idx_roles_batch_display_order ON roles(batch, display_order);
+
+-- Index for badges batch filter and ordering (batch, display_order)
+CREATE INDEX IF NOT EXISTS idx_badges_batch_display_order ON badges(batch, display_order);
+
+-- Indexes for RSVPs foreign keys (user_id, event_id)
+CREATE INDEX IF NOT EXISTS idx_rsvps_user_id ON rsvps(user_id);
+CREATE INDEX IF NOT EXISTS idx_rsvps_event_id ON rsvps(event_id);
+
+-- Index for Tasks ordering (status, position)
+CREATE INDEX IF NOT EXISTS idx_tasks_status_position ON tasks(status, position);
+
+-- Index for Gallery order (created_at)
+CREATE INDEX IF NOT EXISTS idx_gallery_created_at ON gallery(created_at DESC);
+
 -- Done!
 SELECT 'GDG CIT Portal database setup complete!' AS status;
+

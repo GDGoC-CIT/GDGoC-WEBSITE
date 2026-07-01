@@ -618,6 +618,32 @@ export const supabase = supabaseUrl && supabaseAnonKey
 // Database Service Manager (supports local storage syncing for mock dev workflows)
 class DatabaseService {
   private isMock: boolean;
+  private cache = new Map<string, { data: any; timestamp: number }>();
+  private CACHE_TTL = 30000; // 30 seconds cache TTL
+
+  private getCached<T>(key: string): T | null {
+    const entry = this.cache.get(key);
+    if (entry && Date.now() - entry.timestamp < this.CACHE_TTL) {
+      return entry.data as T;
+    }
+    return null;
+  }
+
+  private setCache(key: string, data: any) {
+    this.cache.set(key, { data, timestamp: Date.now() });
+  }
+
+  private clearCache(keyPrefix?: string) {
+    if (keyPrefix) {
+      for (const key of this.cache.keys()) {
+        if (key.startsWith(keyPrefix)) {
+          this.cache.delete(key);
+        }
+      }
+    } else {
+      this.cache.clear();
+    }
+  }
 
   constructor() {
     this.isMock = !supabase;
@@ -671,28 +697,38 @@ class DatabaseService {
   async logoutSession() {
     if (typeof window === 'undefined') return;
     localStorage.removeItem('gdg_session');
+    this.clearCache();
   }
 
   async setSessionUser(user: User) {
     if (typeof window === 'undefined') return;
     localStorage.setItem('gdg_session', JSON.stringify(user));
+    this.clearCache();
   }
 
   // EVENTS
   async getEvents(): Promise<Event[]> {
+    const cacheKey = 'events';
+    const cached = this.getCached<Event[]>(cacheKey);
+    if (cached) return cached;
+
+    let result: Event[];
     if (this.isMock) {
       if (typeof window === 'undefined') return initialEvents;
-      return JSON.parse(localStorage.getItem('gdg_events') || '[]');
+      result = JSON.parse(localStorage.getItem('gdg_events') || '[]');
+    } else {
+      try {
+        const { data, error } = await supabase!.from('events').select('*').order('date', { ascending: true });
+        if (error) throw error;
+        result = data || [];
+      } catch (err) {
+        console.warn("Supabase getEvents query failed, falling back to LocalStorage:", err);
+        if (typeof window === 'undefined') return initialEvents;
+        result = JSON.parse(localStorage.getItem('gdg_events') || JSON.stringify(initialEvents));
+      }
     }
-    try {
-      const { data, error } = await supabase!.from('events').select('*').order('date', { ascending: true });
-      if (error) throw error;
-      return data || [];
-    } catch (err) {
-      console.warn("Supabase getEvents query failed, falling back to LocalStorage:", err);
-      if (typeof window === 'undefined') return initialEvents;
-      return JSON.parse(localStorage.getItem('gdg_events') || JSON.stringify(initialEvents));
-    }
+    this.setCache(cacheKey, result);
+    return result;
   }
 
   async getEventById(id: string): Promise<Event | null> {
@@ -706,6 +742,7 @@ class DatabaseService {
   }
 
   async createEvent(event: Omit<Event, 'id' | 'created_at'>): Promise<Event> {
+    this.clearCache('events');
     if (this.isMock) {
       const events = await this.getEvents();
       const newEvent: Event = {
@@ -723,6 +760,7 @@ class DatabaseService {
   }
 
   async updateEvent(id: string, updates: Partial<Event>): Promise<Event> {
+    this.clearCache('events');
     if (this.isMock) {
       const events = await this.getEvents();
       const index = events.findIndex(e => e.id === id);
@@ -738,6 +776,7 @@ class DatabaseService {
   }
 
   async deleteEvent(id: string): Promise<void> {
+    this.clearCache('events');
     if (this.isMock) {
       const events = await this.getEvents();
       const filtered = events.filter(e => e.id !== id);
@@ -750,42 +789,67 @@ class DatabaseService {
 
   // RSVPS
   async getRSVPs(): Promise<RSVP[]> {
+    const cacheKey = 'rsvps';
+    const cached = this.getCached<RSVP[]>(cacheKey);
+    if (cached) return cached;
+
+    let result: RSVP[];
     if (this.isMock) {
       if (typeof window === 'undefined') return initialRSVPs;
-      return JSON.parse(localStorage.getItem('gdg_rsvps') || '[]');
+      result = JSON.parse(localStorage.getItem('gdg_rsvps') || '[]');
+    } else {
+      try {
+        const { data, error } = await supabase!.from('rsvps').select('*');
+        if (error) throw error;
+        result = data || [];
+      } catch (err) {
+        console.warn("Supabase getRSVPs query failed, falling back to LocalStorage:", err);
+        if (typeof window === 'undefined') return initialRSVPs;
+        result = JSON.parse(localStorage.getItem('gdg_rsvps') || JSON.stringify(initialRSVPs));
+      }
     }
-    try {
-      const { data, error } = await supabase!.from('rsvps').select('*');
-      if (error) throw error;
-      return data || [];
-    } catch (err) {
-      console.warn("Supabase getRSVPs query failed, falling back to LocalStorage:", err);
-      if (typeof window === 'undefined') return initialRSVPs;
-      return JSON.parse(localStorage.getItem('gdg_rsvps') || JSON.stringify(initialRSVPs));
-    }
+    this.setCache(cacheKey, result);
+    return result;
   }
 
   async getRSVPsForEvent(eventId: string): Promise<RSVP[]> {
+    const cacheKey = `rsvps_event_${eventId}`;
+    const cached = this.getCached<RSVP[]>(cacheKey);
+    if (cached) return cached;
+
+    let result: RSVP[];
     if (this.isMock) {
       const rsvps = await this.getRSVPs();
-      return rsvps.filter(r => r.event_id === eventId);
+      result = rsvps.filter(r => r.event_id === eventId);
+    } else {
+      const { data, error } = await supabase!.from('rsvps').select('*').eq('event_id', eventId);
+      if (error) throw error;
+      result = data || [];
     }
-    const { data, error } = await supabase!.from('rsvps').select('*').eq('event_id', eventId);
-    if (error) throw error;
-    return data || [];
+    this.setCache(cacheKey, result);
+    return result;
   }
 
   async getRSVPsForUser(userId: string): Promise<RSVP[]> {
+    const cacheKey = `rsvps_user_${userId}`;
+    const cached = this.getCached<RSVP[]>(cacheKey);
+    if (cached) return cached;
+
+    let result: RSVP[];
     if (this.isMock) {
       const rsvps = await this.getRSVPs();
-      return rsvps.filter(r => r.user_id === userId);
+      result = rsvps.filter(r => r.user_id === userId);
+    } else {
+      const { data, error } = await supabase!.from('rsvps').select('*').eq('user_id', userId);
+      if (error) throw error;
+      result = data || [];
     }
-    const { data, error } = await supabase!.from('rsvps').select('*').eq('user_id', userId);
-    if (error) throw error;
-    return data || [];
+    this.setCache(cacheKey, result);
+    return result;
   }
 
   async toggleRSVP(userId: string, eventId: string): Promise<{ rsvp?: RSVP; deleted: boolean }> {
+    this.clearCache('rsvps');
     if (this.isMock) {
       const rsvps = await this.getRSVPs();
       const existing = rsvps.find(r => r.user_id === userId && r.event_id === eventId);
@@ -832,6 +896,7 @@ class DatabaseService {
   }
 
   async checkInRSVP(rsvpId: string, checkedIn: boolean = true): Promise<RSVP> {
+    this.clearCache('rsvps');
     if (this.isMock) {
       const rsvps = await this.getRSVPs();
       const index = rsvps.findIndex(r => r.id === rsvpId);
@@ -851,22 +916,31 @@ class DatabaseService {
 
   // TASKS (KANBAN)
   async getTasks(): Promise<Task[]> {
+    const cacheKey = 'tasks';
+    const cached = this.getCached<Task[]>(cacheKey);
+    if (cached) return cached;
+
+    let result: Task[];
     if (this.isMock) {
       if (typeof window === 'undefined') return initialTasks;
-      return JSON.parse(localStorage.getItem('gdg_tasks') || '[]');
+      result = JSON.parse(localStorage.getItem('gdg_tasks') || '[]');
+    } else {
+      try {
+        const { data, error } = await supabase!.from('tasks').select('*').order('position', { ascending: true });
+        if (error) throw error;
+        result = data || [];
+      } catch (err) {
+        console.warn("Supabase getTasks query failed, falling back to LocalStorage:", err);
+        if (typeof window === 'undefined') return initialTasks;
+        result = JSON.parse(localStorage.getItem('gdg_tasks') || JSON.stringify(initialTasks));
+      }
     }
-    try {
-      const { data, error } = await supabase!.from('tasks').select('*').order('position', { ascending: true });
-      if (error) throw error;
-      return data || [];
-    } catch (err) {
-      console.warn("Supabase getTasks query failed, falling back to LocalStorage:", err);
-      if (typeof window === 'undefined') return initialTasks;
-      return JSON.parse(localStorage.getItem('gdg_tasks') || JSON.stringify(initialTasks));
-    }
+    this.setCache(cacheKey, result);
+    return result;
   }
 
   async createTask(task: Omit<Task, 'id' | 'created_at' | 'updated_at'>): Promise<Task> {
+    this.clearCache('tasks');
     if (this.isMock) {
       const tasks = await this.getTasks();
       const newTask: Task = {
@@ -885,6 +959,7 @@ class DatabaseService {
   }
 
   async updateTask(id: string, updates: Partial<Task>): Promise<Task> {
+    this.clearCache('tasks');
     if (this.isMock) {
       const tasks = await this.getTasks();
       const index = tasks.findIndex(t => t.id === id);
@@ -908,6 +983,7 @@ class DatabaseService {
   }
 
   async saveTasksOrder(tasks: Task[]): Promise<void> {
+    this.clearCache('tasks');
     if (this.isMock) {
       localStorage.setItem('gdg_tasks', JSON.stringify(tasks));
       return;
@@ -931,6 +1007,7 @@ class DatabaseService {
   }
 
   async deleteTask(id: string): Promise<void> {
+    this.clearCache('tasks');
     if (this.isMock) {
       const tasks = await this.getTasks();
       const filtered = tasks.filter(t => t.id !== id);
@@ -943,22 +1020,31 @@ class DatabaseService {
 
   // GALLERY
   async getGallery(): Promise<GalleryItem[]> {
+    const cacheKey = 'gallery';
+    const cached = this.getCached<GalleryItem[]>(cacheKey);
+    if (cached) return cached;
+
+    let result: GalleryItem[];
     if (this.isMock) {
       if (typeof window === 'undefined') return initialGallery;
-      return JSON.parse(localStorage.getItem('gdg_gallery') || '[]');
+      result = JSON.parse(localStorage.getItem('gdg_gallery') || '[]');
+    } else {
+      try {
+        const { data, error } = await supabase!.from('gallery').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        result = data || [];
+      } catch (err) {
+        console.warn("Supabase getGallery query failed, falling back to LocalStorage:", err);
+        if (typeof window === 'undefined') return initialGallery;
+        result = JSON.parse(localStorage.getItem('gdg_gallery') || JSON.stringify(initialGallery));
+      }
     }
-    try {
-      const { data, error } = await supabase!.from('gallery').select('*').order('created_at', { ascending: false });
-      if (error) throw error;
-      return data || [];
-    } catch (err) {
-      console.warn("Supabase getGallery query failed, falling back to LocalStorage:", err);
-      if (typeof window === 'undefined') return initialGallery;
-      return JSON.parse(localStorage.getItem('gdg_gallery') || JSON.stringify(initialGallery));
-    }
+    this.setCache(cacheKey, result);
+    return result;
   }
 
   async uploadToGallery(item: Omit<GalleryItem, 'id' | 'created_at'>): Promise<GalleryItem> {
+    this.clearCache('gallery');
     if (this.isMock) {
       const gallery = await this.getGallery();
       const newItem: GalleryItem = {
@@ -977,22 +1063,31 @@ class DatabaseService {
 
   // ACHIEVEMENTS
   async getAchievements(): Promise<Achievement[]> {
+    const cacheKey = 'achievements';
+    const cached = this.getCached<Achievement[]>(cacheKey);
+    if (cached) return cached;
+
+    let result: Achievement[];
     if (this.isMock) {
       if (typeof window === 'undefined') return initialAchievements;
-      return JSON.parse(localStorage.getItem('gdg_achievements') || '[]');
+      result = JSON.parse(localStorage.getItem('gdg_achievements') || '[]');
+    } else {
+      try {
+        const { data, error } = await supabase!.from('achievements').select('*').order('year', { ascending: false });
+        if (error) throw error;
+        result = data || [];
+      } catch (err) {
+        console.warn("Supabase getAchievements query failed, falling back to LocalStorage:", err);
+        if (typeof window === 'undefined') return initialAchievements;
+        result = JSON.parse(localStorage.getItem('gdg_achievements') || JSON.stringify(initialAchievements));
+      }
     }
-    try {
-      const { data, error } = await supabase!.from('achievements').select('*').order('year', { ascending: false });
-      if (error) throw error;
-      return data || [];
-    } catch (err) {
-      console.warn("Supabase getAchievements query failed, falling back to LocalStorage:", err);
-      if (typeof window === 'undefined') return initialAchievements;
-      return JSON.parse(localStorage.getItem('gdg_achievements') || JSON.stringify(initialAchievements));
-    }
+    this.setCache(cacheKey, result);
+    return result;
   }
 
   async createAchievement(achievement: Omit<Achievement, 'id' | 'created_at'>): Promise<Achievement> {
+    this.clearCache('achievements');
     if (this.isMock) {
       const achievements = await this.getAchievements();
       const newAchievement: Achievement = {
@@ -1011,20 +1106,32 @@ class DatabaseService {
 
   // TEAM
   async getTeam() {
+    const cacheKey = 'team';
+    const cached = this.getCached<any[]>(cacheKey);
+    if (cached) return cached;
+
+    let result: any[];
     if (this.isMock) {
-      return initialTeam;
+      result = initialTeam;
+    } else {
+      // We can query users with 'member' or 'admin' role for team
+      const { data, error } = await supabase!.from('users')
+        .select('*')
+        .in('role', ['member', 'admin'])
+        .order('name');
+      if (error) throw error;
+      result = data || [];
     }
-    // We can query users with 'member' or 'admin' role for team
-    const { data, error } = await supabase!.from('users')
-      .select('*')
-      .in('role', ['member', 'admin'])
-      .order('name');
-    if (error) throw error;
-    return data || [];
+    this.setCache(cacheKey, result);
+    return result;
   }
 
   // PEOPLE (GDG MEMBERS)
   async getPeople(): Promise<Person[]> {
+    const cacheKey = 'people';
+    const cached = this.getCached<Person[]>(cacheKey);
+    if (cached) return cached;
+
     let list: Person[] = [];
     if (this.isMock) {
       if (typeof window === 'undefined') return initialPeople;
@@ -1091,6 +1198,7 @@ class DatabaseService {
       localStorage.setItem('gdg_people', JSON.stringify(list));
     }
 
+    this.setCache(cacheKey, list);
     return list;
   }
 
@@ -1134,8 +1242,8 @@ class DatabaseService {
     await this.saveRoles(batch, updated);
   }
 
-
   async createPerson(person: Omit<Person, 'created_at'>): Promise<Person> {
+    this.clearCache('people');
     if (this.isMock) {
       const people = await this.getPeople();
       
@@ -1179,6 +1287,7 @@ class DatabaseService {
   }
 
   async updatePerson(id: string, updates: Partial<Person>): Promise<Person> {
+    this.clearCache('people');
     if (this.isMock) {
       const people = await this.getPeople();
       const index = people.findIndex(p => p.id === id);
@@ -1205,24 +1314,33 @@ class DatabaseService {
   }
 
   async getRoles(batch: string): Promise<Role[]> {
+    const cacheKey = `roles_${batch}`;
+    const cached = this.getCached<Role[]>(cacheKey);
+    if (cached) return cached;
+
+    let result: Role[];
     if (this.isMock) {
       if (typeof window === 'undefined') return [];
       const stored = localStorage.getItem(`gdg_roles_${batch}`);
-      return stored ? JSON.parse(stored) : [];
+      result = stored ? JSON.parse(stored) : [];
+    } else {
+      try {
+        const { data, error } = await supabase!.from('roles').select('*').eq('batch', batch).order('display_order');
+        if (error) throw error;
+        result = data || [];
+      } catch (err) {
+        console.warn('[getRoles] Supabase failed, fallback to localStorage:', err);
+        if (typeof window === 'undefined') return [];
+        const stored = localStorage.getItem(`gdg_roles_${batch}`);
+        result = stored ? JSON.parse(stored) : [];
+      }
     }
-    try {
-      const { data, error } = await supabase!.from('roles').select('*').eq('batch', batch).order('display_order');
-      if (error) throw error;
-      return data || [];
-    } catch (err) {
-      console.warn('[getRoles] Supabase failed, fallback to localStorage:', err);
-      if (typeof window === 'undefined') return [];
-      const stored = localStorage.getItem(`gdg_roles_${batch}`);
-      return stored ? JSON.parse(stored) : [];
-    }
+    this.setCache(cacheKey, result);
+    return result;
   }
 
   async saveRoles(batch: string, roles: Role[]): Promise<void> {
+    this.clearCache(`roles_${batch}`);
     if (this.isMock) {
       if (typeof window !== 'undefined') {
         localStorage.setItem(`gdg_roles_${batch}`, JSON.stringify(roles));
@@ -1244,7 +1362,9 @@ class DatabaseService {
       }
     }
   }
+
   async deletePerson(id: string): Promise<void> {
+    this.clearCache('people');
     console.log("DatabaseService: deleting person with ID:", id);
     if (this.isMock) {
       const people = await this.getPeople();
@@ -1269,24 +1389,33 @@ class DatabaseService {
   }
 
   async getBadges(batch: string): Promise<Badge[]> {
+    const cacheKey = `badges_${batch}`;
+    const cached = this.getCached<Badge[]>(cacheKey);
+    if (cached) return cached;
+
+    let result: Badge[];
     if (this.isMock) {
       if (typeof window === 'undefined') return [];
       const stored = localStorage.getItem(`gdg_badges_${batch}`);
-      return stored ? JSON.parse(stored) : [];
+      result = stored ? JSON.parse(stored) : [];
+    } else {
+      try {
+        const { data, error } = await supabase!.from('badges').select('*').eq('batch', batch).order('display_order');
+        if (error) throw error;
+        result = data || [];
+      } catch (err) {
+        console.warn("Supabase getBadges failed, fallback to local:", err);
+        if (typeof window === 'undefined') return [];
+        const stored = localStorage.getItem(`gdg_badges_${batch}`);
+        result = stored ? JSON.parse(stored) : [];
+      }
     }
-    try {
-      const { data, error } = await supabase!.from('badges').select('*').eq('batch', batch).order('display_order');
-      if (error) throw error;
-      return data || [];
-    } catch (err) {
-      console.warn("Supabase getBadges failed, fallback to local:", err);
-      if (typeof window === 'undefined') return [];
-      const stored = localStorage.getItem(`gdg_badges_${batch}`);
-      return stored ? JSON.parse(stored) : [];
-    }
+    this.setCache(cacheKey, result);
+    return result;
   }
 
   async saveBadges(batch: string, badges: Badge[]): Promise<void> {
+    this.clearCache(`badges_${batch}`);
     if (this.isMock) {
       if (typeof window !== 'undefined') {
         localStorage.setItem(`gdg_badges_${batch}`, JSON.stringify(badges));
@@ -1314,28 +1443,37 @@ class DatabaseService {
   // ─── Batch CRUD ───────────────────────────────────────────────────────────
 
   async getBatches(): Promise<Batch[]> {
+    const cacheKey = 'batches';
+    const cached = this.getCached<Batch[]>(cacheKey);
+    if (cached) return cached;
+
+    let result: Batch[];
     if (this.isMock) {
       if (typeof window === 'undefined') return [];
       const stored = localStorage.getItem('gdg_custom_batches');
       if (!stored) return [];
       const names: string[] = JSON.parse(stored);
-      return names.map(name => ({ id: name, name }));
+      result = names.map(name => ({ id: name, name }));
+    } else {
+      try {
+        const { data, error } = await supabase!.from('batches').select('*').order('name');
+        if (error) throw error;
+        result = data || [];
+      } catch (err) {
+        console.warn('[getBatches] Supabase failed, fallback to localStorage:', err);
+        if (typeof window === 'undefined') return [];
+        const stored = localStorage.getItem('gdg_custom_batches');
+        if (!stored) return [];
+        const names: string[] = JSON.parse(stored);
+        result = names.map(name => ({ id: name, name }));
+      }
     }
-    try {
-      const { data, error } = await supabase!.from('batches').select('*').order('name');
-      if (error) throw error;
-      return data || [];
-    } catch (err) {
-      console.warn('[getBatches] Supabase failed, fallback to localStorage:', err);
-      if (typeof window === 'undefined') return [];
-      const stored = localStorage.getItem('gdg_custom_batches');
-      if (!stored) return [];
-      const names: string[] = JSON.parse(stored);
-      return names.map(name => ({ id: name, name }));
-    }
+    this.setCache(cacheKey, result);
+    return result;
   }
 
   async saveBatches(batches: Batch[]): Promise<void> {
+    this.clearCache('batches');
     // Always keep localStorage in sync for offline/fallback
     if (typeof window !== 'undefined') {
       localStorage.setItem('gdg_custom_batches', JSON.stringify(batches.map(b => b.name)));
