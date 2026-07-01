@@ -358,6 +358,10 @@ CREATE INDEX IF NOT EXISTS idx_tasks_status_position ON tasks(status, position);
 -- Index for Gallery order (created_at)
 CREATE INDEX IF NOT EXISTS idx_gallery_created_at ON gallery(created_at DESC);
 
+-- Index for People batch filtering and ordering (batch, name)
+CREATE INDEX IF NOT EXISTS idx_people_batch_name ON people(batch, name);
+
 -- Done!
 SELECT 'GDG CIT Portal database setup complete!' AS status;
+
 

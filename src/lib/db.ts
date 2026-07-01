@@ -1127,8 +1127,8 @@ class DatabaseService {
   }
 
   // PEOPLE (GDG MEMBERS)
-  async getPeople(): Promise<Person[]> {
-    const cacheKey = 'people';
+  async getPeople(batch?: string): Promise<Person[]> {
+    const cacheKey = `people_${batch || 'all'}`;
     const cached = this.getCached<Person[]>(cacheKey);
     if (cached) return cached;
 
@@ -1142,15 +1142,25 @@ class DatabaseService {
       } else {
         list = JSON.parse(stored);
       }
+      if (batch) {
+        list = list.filter(p => p.batch === batch);
+      }
     } else {
       try {
-        const { data, error } = await supabase!.from('people').select('*').order('name');
+        let query = supabase!.from('people').select('*');
+        if (batch) {
+          query = query.eq('batch', batch);
+        }
+        const { data, error } = await query.order('name');
         if (error) throw error;
         list = data || [];
       } catch (err) {
         console.warn("Supabase 'people' query failed, falling back to LocalStorage:", err);
         if (typeof window === 'undefined') return initialPeople;
         list = JSON.parse(localStorage.getItem('gdg_people') || JSON.stringify(initialPeople));
+        if (batch) {
+          list = list.filter(p => p.batch === batch);
+        }
       }
     }
 

@@ -245,11 +245,11 @@ export default function BatchPeoplePage() {
       setLoading(true);
       try {
         const [allPeople, orderList, badgeList] = await Promise.all([
-          db.getPeople(),
+          db.getPeople(batchName),
           db.getRoleOrder(batchName),
           db.getBadges(batchName)
         ]);
-        setPeople(allPeople.filter(p => p.batch === batchName));
+        setPeople(allPeople);
         setRolesOrder(orderList);
         const map = new Map<string, Badge>();
         badgeList.forEach(b => map.set(b.id, b));
