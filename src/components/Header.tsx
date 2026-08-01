@@ -33,27 +33,47 @@ export default function Header() {
     return pathname.startsWith(href);
   };
 
+  // Lock body scroll when mobile menu is open
+  React.useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
+
   return (
     <header className="sticky top-0 z-50 bg-white elevation-1 border-b border-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Signature Google 4-color top branding line */}
+      <div className="h-1 flex w-full">
+        <div className="h-full bg-gdg-blue flex-1" />
+        <div className="h-full bg-gdg-red flex-1" />
+        <div className="h-full bg-gdg-yellow flex-1" />
+        <div className="h-full bg-gdg-green flex-1" />
+      </div>
+
+      <div className="w-full px-4 sm:px-6 md:px-10 lg:px-12 xl:px-16">
         <div className="flex justify-between h-16 items-center">
           {/* Logo & Wordmark */}
-          <Link href="/home" className="flex items-center space-x-2">
+          <Link href="/home" className="flex items-center space-x-2 shrink-0">
             {/* GDGoC Logo Image */}
             <img
               src="/gdgoc-logo.png"
               alt="GDGoC Logo"
-              className="w-15 h-15 object-contain flex-shrink-0"
+              className="w-10 h-10 sm:w-12 sm:h-12 object-contain flex-shrink-0"
             />
-            <div className="flex items-center text-xl font-bold tracking-tight font-display">
+            <div className="flex items-center text-lg sm:text-xl font-bold tracking-tight font-display whitespace-nowrap">
               <span className="text-gdg-blue font-extrabold">G</span>
               <span className="text-gdg-red font-extrabold">D</span>
               <span className="text-gdg-yellow font-extrabold">G</span>
-              <span className="text-gray-600 font-medium ml-1.5 text-base sm:text-lg">on Campus</span>
-              <span className="text-gdg-green font-bold ml-1 text-base sm:text-lg">CIT</span>
+              <span className="text-gray-600 font-medium ml-1.5 text-sm sm:text-base">on Campus</span>
+              <span className="text-gdg-green font-bold ml-1 text-sm sm:text-base">CIT</span>
             </div>
-            <div className="hidden md:block h-4 w-px bg-gray-300 mx-2" />
-            <span className="hidden md:block text-xs text-gray-500 font-normal max-w-[150px] leading-3">
+            <div className="hidden lg:block h-4 w-px bg-gray-300 mx-2" />
+            <span className="hidden lg:block text-xs text-gray-500 font-normal max-w-[160px] leading-tight">
               Coimbatore Institute of Technology
             </span>
           </Link>
@@ -236,7 +256,7 @@ export default function Header() {
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-gray-100 bg-white px-4 pt-2 pb-4 space-y-1 elevation-2">
+        <div className="md:hidden border-t border-gray-200 bg-white/98 backdrop-blur-xl px-4 pt-3 pb-6 space-y-1 shadow-2xl relative z-50">
           {navItems.map((item) => {
             const active = isActive(item.href);
             return (
