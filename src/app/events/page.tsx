@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { 
   Calendar, MapPin, Search, Sparkles, Filter, CheckCircle2, 
   ChevronRight, ChevronLeft, ArrowUp, Tag, CalendarPlus, Users, Radio,
-  Globe, Award, PlayCircle, Clock, Heart, Bookmark, X
+  Globe, Award, PlayCircle, Clock, Heart, Bookmark, X, FolderArchive
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -32,11 +32,46 @@ export default function EventsPage() {
       try {
         const saved = localStorage.getItem('gdg_bookmarked_events');
         if (saved) setBookmarkedIds(JSON.parse(saved));
+
+        const params = new URLSearchParams(window.location.search);
+        const eventId = params.get('event');
+        const tab = params.get('tab');
+        const search = params.get('search');
+
+        if (eventId && events.length > 0) {
+          const targetEvent = events.find(e => e.id === eventId);
+          if (targetEvent) {
+            if (isLiveEvent(targetEvent)) {
+              setActiveTab('live');
+            } else if (isUpcomingEvent(targetEvent)) {
+              setActiveTab('upcoming');
+            } else {
+              setActiveTab('past');
+            }
+          }
+        } else if (tab === 'live' || tab === 'upcoming' || tab === 'past') {
+          setActiveTab(tab);
+        }
+
+        if (search) setSearchQuery(search);
+
+        if (eventId) {
+          setTimeout(() => {
+            const el = document.getElementById(`event-${eventId}`);
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              el.classList.add('ring-4', 'ring-gdg-blue/50', 'transition-all');
+              setTimeout(() => {
+                el.classList.remove('ring-4', 'ring-gdg-blue/50');
+              }, 2500);
+            }
+          }, 350);
+        }
       } catch (e) {
         // ignore
       }
     }
-  }, []);
+  }, [events]);
 
   const toggleBookmark = (e: React.MouseEvent, eventId: string) => {
     e.preventDefault();
@@ -465,12 +500,13 @@ export default function EventsPage() {
                         <div className="flex items-center gap-3 mb-2.5">
                           {eventIsLive ? (
                             <span className="inline-flex items-center gap-1.5 bg-red-600 text-white px-3 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-widest shadow-md animate-pulse">
-                              <span className="w-2 h-2 rounded-full bg-white animate-ping" />
-                              🔴 LIVE NOW
+                              <Radio className="w-3.5 h-3.5 text-white animate-pulse" />
+                              <span>LIVE NOW</span>
                             </span>
                           ) : (
                             <span className="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md text-white px-3 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-widest border border-white/30">
-                              ★ UPCOMING EVENT
+                              <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
+                              <span>UPCOMING EVENT</span>
                             </span>
                           )}
                           <span className="bg-white/15 backdrop-blur-sm text-white/90 px-3 py-0.5 rounded-full text-xs font-bold capitalize border border-white/20">
@@ -502,7 +538,7 @@ export default function EventsPage() {
                           </div>
                           <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-md border border-white/20 px-3.5 py-1.5 rounded-full">
                             <MapPin className="w-3.5 h-3.5 text-white/80" />
-                            <span className="truncate max-w-[220px]">📍 {evt.location}</span>
+                            <span className="truncate max-w-[220px]">{evt.location}</span>
                           </div>
                         </div>
 
@@ -678,8 +714,23 @@ export default function EventsPage() {
         {/* Section Heading */}
         <div className="flex items-center justify-between mb-6 anim-fade-up">
           <h3 className="text-xl font-extrabold text-gray-900 tracking-tight flex items-center font-display">
-            <span>
-              {activeTab === 'live' ? '🔴 Live & Ongoing Events' : activeTab === 'upcoming' ? '📅 Upcoming Schedule' : '🗂️ Past Event Archive'}
+            <span className="inline-flex items-center gap-2">
+              {activeTab === 'live' ? (
+                <>
+                  <Radio className="w-5 h-5 text-gdg-red animate-pulse" />
+                  <span>Live &amp; Ongoing Events</span>
+                </>
+              ) : activeTab === 'upcoming' ? (
+                <>
+                  <Calendar className="w-5 h-5 text-gdg-blue" />
+                  <span>Upcoming Schedule</span>
+                </>
+              ) : (
+                <>
+                  <FolderArchive className="w-5 h-5 text-gray-700" />
+                  <span>Past Event Archive</span>
+                </>
+              )}
             </span>
             <span className="ml-3 bg-gray-200 text-gray-700 text-xs font-bold px-2.5 py-1 rounded-full">
               {filteredEvents.length}
@@ -733,6 +784,7 @@ export default function EventsPage() {
               return (
                 <div
                   key={event.id}
+                  id={`event-${event.id}`}
                   className={`group bg-white rounded-3xl border border-gray-200 shadow-sm hover:shadow-2xl hover:border-blue-200 transition-all duration-300 hover:-translate-y-2 flex flex-col overflow-hidden relative ${typeAccent} ${
                     isPast ? 'opacity-85 hover:opacity-100' : ''
                   }`}
@@ -845,7 +897,7 @@ export default function EventsPage() {
                                 className="px-3.5 py-1.5 rounded-full text-xs font-bold text-white bg-gdg-green hover:bg-green-700 transition-all shadow-sm flex items-center space-x-1 cursor-pointer"
                               >
                                 <CheckCircle2 className="w-3.5 h-3.5" />
-                                <span>✓ Registered</span>
+                                <span>Registered</span>
                               </button>
                             ) : (
                               <button
@@ -895,9 +947,10 @@ export default function EventsPage() {
                 </button>
                 <button
                   onClick={() => { setSearchQuery(''); setSelectedType('all'); setActiveTab('live'); }}
-                  className="px-5 py-2.5 rounded-full bg-gdg-red text-white text-xs font-bold hover:bg-red-700 hover:shadow-lg hover:scale-105 active:scale-95 transition-all shadow-sm cursor-pointer"
+                  className="px-5 py-2.5 rounded-full bg-gdg-red text-white text-xs font-bold hover:bg-red-700 hover:shadow-lg hover:scale-105 active:scale-95 transition-all shadow-sm cursor-pointer flex items-center gap-1.5"
                 >
-                  🔴 Live Now
+                  <Radio className="w-3.5 h-3.5 animate-pulse" />
+                  <span>Live Now</span>
                 </button>
               </div>
             </div>
@@ -910,7 +963,7 @@ export default function EventsPage() {
         onClick={scrollToTop}
         aria-label="Scroll to top"
         style={{ opacity: showScrollTop ? 1 : 0, pointerEvents: showScrollTop ? 'auto' : 'none', transform: showScrollTop ? 'translateY(0) scale(1)' : 'translateY(16px) scale(0.9)' }}
-        className="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-gdg-blue text-white shadow-xl hover:shadow-2xl hover:bg-blue-700 hover:scale-110 active:scale-95 transition-all duration-300 flex items-center justify-center cursor-pointer"
+        className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-50 w-11 h-11 rounded-full bg-gdg-blue text-white shadow-lg hover:shadow-xl hover:bg-blue-700 hover:scale-110 active:scale-95 transition-all duration-300 flex items-center justify-center cursor-pointer border border-white/20 backdrop-blur-md"
       >
         <ArrowUp className="w-5 h-5" />
       </button>

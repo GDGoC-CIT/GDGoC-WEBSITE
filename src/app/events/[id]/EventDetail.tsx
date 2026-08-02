@@ -10,7 +10,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { 
   Calendar, MapPin, Share2, CalendarPlus, CheckCircle2, 
   ChevronLeft, Award, Sparkles, Download, Copy, ExternalLink, ShieldAlert,
-  Laptop, Gift, MessageSquare, ShieldCheck, Check
+  Laptop, Gift, MessageSquare, ShieldCheck, Check, FolderArchive, Building2,
+  Presentation, Code, Video, Camera, Coffee, Zap, Mail, MessageCircle
 } from 'lucide-react';
 import QRCode from 'qrcode';
 import confetti from 'canvas-confetti';
@@ -204,7 +205,7 @@ export default function EventDetailPage() {
                 <span className="bg-white/20 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-widest text-white border border-white/25 inline-flex items-center gap-1.5">
                   {isPast ? (
                     <>
-                      <span>🗂️</span>
+                      <FolderArchive className="w-3.5 h-3.5 text-white" />
                       <span>Event Recap &bull; Concluded</span>
                     </>
                   ) : (
@@ -250,8 +251,8 @@ export default function EventDetailPage() {
         {isPast && (
           <div className="bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-300/60 rounded-2xl p-5 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm detail-anim-1">
             <div className="flex items-center gap-3.5">
-              <span className="w-10 h-10 rounded-full bg-amber-500/20 text-amber-700 flex items-center justify-center text-xl shrink-0 font-bold">
-                🗂️
+              <span className="w-10 h-10 rounded-full bg-amber-500/20 text-amber-700 flex items-center justify-center shrink-0">
+                <FolderArchive className="w-5 h-5 text-amber-700" />
               </span>
               <div>
                 <h3 className="text-sm font-extrabold text-gray-900 font-display">Past Session Recap</h3>
@@ -260,8 +261,9 @@ export default function EventDetailPage() {
                 </p>
               </div>
             </div>
-            <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-bold shrink-0 self-start sm:self-center">
-              ✓ Event Completed
+            <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-bold shrink-0 self-start sm:self-center flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5 text-amber-700" />
+              <span>Event Completed</span>
             </span>
           </div>
         )}
@@ -393,7 +395,10 @@ export default function EventDetailPage() {
                       Leading technical sessions, demonstrating modern web frameworks, and providing professional development feedback to CIT engineering students.
                     </p>
                     <div className="mt-4 flex justify-center sm:justify-start">
-                      <span className="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">🏛️ CIT Speaker Network</span>
+                      <span className="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-full flex items-center gap-1.5 w-max">
+                        <Building2 className="w-3.5 h-3.5 text-gray-500" />
+                        <span>CIT Speaker Network</span>
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -418,7 +423,7 @@ export default function EventDetailPage() {
                   >
                     <div>
                       <div className="w-8 h-8 rounded-lg bg-blue-100 text-gdg-blue flex items-center justify-center font-bold mb-3 group-hover:scale-110 transition-transform">
-                        📊
+                        <Presentation className="w-4.5 h-4.5 text-gdg-blue" />
                       </div>
                       <h3 className="text-xs font-extrabold text-gray-800 group-hover:text-gdg-blue">Speaker Slide Deck</h3>
                       <p className="text-[10px] text-gray-500 mt-1">PDF Presentation (14.2 MB)</p>
@@ -435,7 +440,7 @@ export default function EventDetailPage() {
                   >
                     <div>
                       <div className="w-8 h-8 rounded-lg bg-gray-200 text-gray-800 flex items-center justify-center font-bold mb-3 group-hover:scale-110 transition-transform">
-                        💻
+                        <Code className="w-4.5 h-4.5 text-gray-800" />
                       </div>
                       <h3 className="text-xs font-extrabold text-gray-800">GitHub Source Code</h3>
                       <p className="text-[10px] text-gray-500 mt-1">Sample project &amp; exercises</p>
@@ -452,7 +457,7 @@ export default function EventDetailPage() {
                   >
                     <div>
                       <div className="w-8 h-8 rounded-lg bg-red-100 text-gdg-red flex items-center justify-center font-bold mb-3 group-hover:scale-110 transition-transform">
-                        🎥
+                        <Video className="w-4.5 h-4.5 text-gdg-red" />
                       </div>
                       <h3 className="text-xs font-extrabold text-gray-800 group-hover:text-gdg-red">Session Recording</h3>
                       <p className="text-[10px] text-gray-500 mt-1">Full 1080p Video Stream</p>
@@ -469,7 +474,7 @@ export default function EventDetailPage() {
             {isPast && (
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-150 p-6 sm:p-8 shadow-sm detail-anim-4">
                 <h2 className="text-xl font-extrabold text-gray-900 font-display mb-2 flex items-center gap-2">
-                  <span>📸</span>
+                  <Camera className="w-5 h-5 text-gdg-blue" />
                   <span>Event Photo Highlights</span>
                 </h2>
                 <p className="text-xs text-gray-500 mb-6">
@@ -558,7 +563,7 @@ export default function EventDetailPage() {
                     className="w-full py-3.5 bg-gdg-green hover:bg-green-700 text-white rounded-full font-bold text-sm transition-all shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95 flex items-center justify-center space-x-2 cursor-pointer"
                   >
                     <CheckCircle2 className="w-5 h-5" />
-                    <span>✓ Registered (Click to cancel)</span>
+                    <span>Registered (Click to cancel)</span>
                   </button>
                 ) : (
                   <button
@@ -631,15 +636,21 @@ export default function EventDetailPage() {
                 </h3>
                 <ul className="space-y-3 text-xs text-gray-600">
                   <li className="flex items-start gap-2.5">
-                    <span className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold shrink-0 mt-0.5 text-[10px]">✓</span>
+                    <span className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold shrink-0 mt-0.5">
+                      <Check className="w-3 h-3 text-emerald-600" />
+                    </span>
                     <span><strong>100% Workshop Completion</strong> with hands-on coding labs.</span>
                   </li>
                   <li className="flex items-start gap-2.5">
-                    <span className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold shrink-0 mt-0.5 text-[10px]">✓</span>
+                    <span className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold shrink-0 mt-0.5">
+                      <Check className="w-3 h-3 text-emerald-600" />
+                    </span>
                     <span><strong>Interactive Q&amp;A Session</strong> with industry experts.</span>
                   </li>
                   <li className="flex items-start gap-2.5">
-                    <span className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold shrink-0 mt-0.5 text-[10px]">✓</span>
+                    <span className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold shrink-0 mt-0.5">
+                      <Check className="w-3 h-3 text-emerald-600" />
+                    </span>
                     <span><strong>Certificates &amp; Swag</strong> distributed to verified attendees.</span>
                   </li>
                 </ul>
@@ -652,15 +663,21 @@ export default function EventDetailPage() {
                 </h3>
                 <ul className="space-y-3 text-xs text-gray-600">
                   <li className="flex items-start gap-2.5">
-                    <span className="w-5 h-5 rounded-full bg-blue-50 text-gdg-blue flex items-center justify-center font-bold shrink-0 mt-0.5 text-[10px]">✓</span>
+                    <span className="w-5 h-5 rounded-full bg-blue-50 text-gdg-blue flex items-center justify-center font-bold shrink-0 mt-0.5">
+                      <Check className="w-3 h-3 text-gdg-blue" />
+                    </span>
                     <span><strong>Charged Laptop &amp; Charger</strong> with Chrome / VS Code installed.</span>
                   </li>
                   <li className="flex items-start gap-2.5">
-                    <span className="w-5 h-5 rounded-full bg-blue-50 text-gdg-blue flex items-center justify-center font-bold shrink-0 mt-0.5 text-[10px]">✓</span>
+                    <span className="w-5 h-5 rounded-full bg-blue-50 text-gdg-blue flex items-center justify-center font-bold shrink-0 mt-0.5">
+                      <Check className="w-3 h-3 text-gdg-blue" />
+                    </span>
                     <span><strong>CIT College Student ID Card</strong> for gate &amp; hall entry check-in.</span>
                   </li>
                   <li className="flex items-start gap-2.5">
-                    <span className="w-5 h-5 rounded-full bg-blue-50 text-gdg-blue flex items-center justify-center font-bold shrink-0 mt-0.5 text-[10px]">✓</span>
+                    <span className="w-5 h-5 rounded-full bg-blue-50 text-gdg-blue flex items-center justify-center font-bold shrink-0 mt-0.5">
+                      <Check className="w-3 h-3 text-gdg-blue" />
+                    </span>
                     <span><strong>Active Google Account</strong> for hands-on Qwiklabs access.</span>
                   </li>
                 </ul>
@@ -675,19 +692,19 @@ export default function EventDetailPage() {
               </h3>
               <div className="grid grid-cols-2 gap-2.5 text-xs font-bold text-gray-700">
                 <div className="bg-white/80 backdrop-blur-sm p-2.5 rounded-xl border border-amber-200/50 flex items-center gap-2">
-                  <span className="text-base">🎁</span>
+                  <Gift className="w-4 h-4 text-amber-600 shrink-0" />
                   <span>Sticker Pack</span>
                 </div>
                 <div className="bg-white/80 backdrop-blur-sm p-2.5 rounded-xl border border-amber-200/50 flex items-center gap-2">
-                  <span className="text-base">📜</span>
+                  <Award className="w-4 h-4 text-amber-600 shrink-0" />
                   <span>Certificate</span>
                 </div>
                 <div className="bg-white/80 backdrop-blur-sm p-2.5 rounded-xl border border-amber-200/50 flex items-center gap-2">
-                  <span className="text-base">☕</span>
+                  <Coffee className="w-4 h-4 text-amber-600 shrink-0" />
                   <span>Refreshments</span>
                 </div>
                 <div className="bg-white/80 backdrop-blur-sm p-2.5 rounded-xl border border-amber-200/50 flex items-center gap-2">
-                  <span className="text-base">⚡</span>
+                  <Zap className="w-4 h-4 text-amber-600 shrink-0" />
                   <span>Cloud Credits</span>
                 </div>
               </div>
@@ -705,17 +722,19 @@ export default function EventDetailPage() {
               <div className="flex flex-col gap-2">
                 <a
                   href="mailto:gdg@cit.edu.in"
-                  className="w-full py-2 px-3 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 text-xs font-bold text-center transition-all"
+                  className="w-full py-2 px-3 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 text-xs font-bold text-center transition-all flex items-center justify-center gap-1.5"
                 >
-                  ✉️ Email Organizers: gdg@cit.edu.in
+                  <Mail className="w-3.5 h-3.5 text-gray-500" />
+                  <span>Email Organizers: gdg@cit.edu.in</span>
                 </a>
                 <a
                   href="https://chat.whatsapp.com/demo"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full py-2 px-3 rounded-xl bg-green-500 hover:bg-green-600 text-white text-xs font-bold text-center transition-all shadow-sm"
+                  className="w-full py-2 px-3 rounded-xl bg-green-500 hover:bg-green-600 text-white text-xs font-bold text-center transition-all shadow-sm flex items-center justify-center gap-1.5"
                 >
-                  💬 Join CIT GDG WhatsApp Group
+                  <MessageCircle className="w-3.5 h-3.5 text-white" />
+                  <span>Join CIT GDG WhatsApp Group</span>
                 </a>
               </div>
             </div>

@@ -4,19 +4,23 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import ReactBitsBackground from '@/components/ReactBitsBackground';
 import { db, Event, Achievement, GalleryItem } from '@/lib/db';
 import { useAuth } from '@/context/AuthContext';
-import { ArrowRight, Calendar, MapPin, Users, Award, Code, Sparkles, Monitor, ChevronRight, Zap, Globe, Star } from 'lucide-react';
+import {
+  ArrowRight, Calendar, MapPin, Users, Code,
+  Monitor, ChevronRight, ChevronLeft, Zap, Globe, Star, Trophy,
+  ArrowUp, Radio, Award, Sparkles, Image as ImageIcon,
+} from 'lucide-react';
 
-// ─── Google color palette ────────────────────────────────────────────────────
 const G = { blue: '#4285F4', red: '#EA4335', yellow: '#FBBC05', green: '#34A853' };
 
-const EVENT_TYPE_CONFIG: Record<string, { color: string; bg: string; label: string }> = {
-  study_jam:  { color: G.yellow, bg: '#FFF8E1', label: 'Study Jam' },
-  workshop:   { color: G.blue,   bg: '#E8F0FE', label: 'Workshop'  },
-  hackathon:  { color: G.red,    bg: '#FCE8E6', label: 'Hackathon' },
-  info_session:{ color: G.green, bg: '#E6F4EA', label: 'Info Session' },
-  default:    { color: G.green,  bg: '#E6F4EA', label: 'Event'     },
+const EVENT_TYPE_CONFIG: Record<string, { color: string; label: string; gradient: string }> = {
+  study_jam:    { color: G.yellow, label: 'Study Jam',    gradient: 'from-amber-400 to-yellow-500' },
+  workshop:     { color: G.blue,   label: 'Workshop',     gradient: 'from-blue-500 to-indigo-600'  },
+  hackathon:    { color: G.red,    label: 'Hackathon',    gradient: 'from-red-500 to-rose-600'     },
+  info_session: { color: G.green,  label: 'Info Session', gradient: 'from-emerald-500 to-teal-600' },
+  default:      { color: G.green,  label: 'Event',        gradient: 'from-emerald-500 to-teal-600' },
 };
 
 export default function HomePage() {
@@ -24,447 +28,666 @@ export default function HomePage() {
 
   const taglines = ['Build.', 'Learn.', 'Connect.', 'Ship.'];
   const taglineColors = [G.blue, G.red, G.yellow, G.green];
-  const [currentTaglineIndex, setCurrentTaglineIndex] = useState(0);
-  const [taglineFade, setTaglineFade] = useState(true);
+  const [idx, setIdx] = useState(0);
+  const [fade, setFade] = useState(true);
 
   const [events, setEvents] = useState<Event[]>([]);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [gallery, setGallery] = useState<GalleryItem[]>([]);
   const [stats, setStats] = useState({ members: 0, events: 0, projects: 0, techs: 0 });
+  const [showTop, setShowTop] = useState(false);
 
   useEffect(() => {
-    // Tagline cycling
-    const interval = setInterval(() => {
-      setTaglineFade(false);
-      setTimeout(() => {
-        setCurrentTaglineIndex(i => (i + 1) % taglines.length);
-        setTaglineFade(true);
-      }, 180);
+    const taglineTimer = setInterval(() => {
+      setFade(false);
+      setTimeout(() => { setIdx(i => (i + 1) % taglines.length); setFade(true); }, 180);
     }, 2400);
 
-    // Animate stats
     const targets = { members: 240, events: 48, projects: 36, techs: 20 };
     let step = 0;
-    const steps = 40;
-    const statsInterval = setInterval(() => {
+    const statsTimer = setInterval(() => {
       step++;
-      const p = step / steps;
+      const p = Math.min(step / 40, 1);
       setStats({
-        members:  Math.round(targets.members  * p),
-        events:   Math.round(targets.events   * p),
+        members: Math.round(targets.members * p),
+        events: Math.round(targets.events * p),
         projects: Math.round(targets.projects * p),
-        techs:    Math.round(targets.techs    * p),
+        techs: Math.round(targets.techs * p),
       });
-      if (step >= steps) clearInterval(statsInterval);
+      if (step >= 40) clearInterval(statsTimer);
     }, 28);
 
-    async function loadData() {
-      try {
-        const [allEvents, allAchievements, allGallery] = await Promise.all([
-          db.getEvents(), db.getAchievements(), db.getGallery(),
-        ]);
-        setEvents(allEvents.slice(0, 3));
-        setAchievements(allAchievements);
-        setGallery(allGallery.slice(0, 4));
-      } catch (err) { console.error(err); }
-    }
-    loadData();
+    db.getEvents().then(d => setEvents(d.slice(0, 3))).catch(() => {});
+    db.getAchievements().then(setAchievements).catch(() => {});
+    db.getGallery().then(d => setGallery(d.slice(0, 4))).catch(() => {});
 
-    return () => { clearInterval(interval); clearInterval(statsInterval); };
+    const onScroll = () => setShowTop(window.scrollY > 300);
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    return () => {
+      clearInterval(taglineTimer);
+      clearInterval(statsTimer);
+      window.removeEventListener('scroll', onScroll);
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const eventCfg = (type: string) => EVENT_TYPE_CONFIG[type] ?? EVENT_TYPE_CONFIG.default;
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
+  const cfg = (type: string) => EVENT_TYPE_CONFIG[type] ?? EVENT_TYPE_CONFIG.default;
+
+  const techDomains = [
+    { icon: Globe,    color: G.blue,   bg: '#E8F0FE', label: 'Web & Cloud',       sub: 'React, Next.js, Firebase'  },
+    { icon: Zap,      color: G.yellow, bg: '#FFF8E1', label: 'AI / ML',           sub: 'TensorFlow, Gemini API'     },
+    { icon: Code,     color: G.green,  bg: '#E6F4EA', label: 'Android & Flutter', sub: 'Kotlin, Dart, Flutter'      },
+    { icon: Star,     color: G.red,    bg: '#FCE8E6', label: 'Google Cloud',      sub: 'GKE, BigQuery, Vertex AI'   },
+    { icon: Sparkles, color: G.blue,   bg: '#E8F0FE', label: 'Open Source',       sub: 'GSoC, GitHub'               },
+    { icon: Users,    color: G.green,  bg: '#E6F4EA', label: 'Community',         sub: 'Study Jams, Hackathons'     },
+  ];
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen relative overflow-x-hidden">
+      <ReactBitsBackground />
       <Header />
 
-      {/* ── Hero ──────────────────────────────────────────────────────────── */}
-      <section style={{ padding: '80px 0 64px', position: 'relative' }}>
-        {/* Google color top stripe */}
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, display: 'flex' }}>
-          {[G.blue, G.red, G.yellow, G.green].map(c => (
-            <div key={c} style={{ flex: 1, background: c }} />
-          ))}
-        </div>
-
-        <div style={{ maxWidth: 800, margin: '0 auto', padding: '0 24px', textAlign: 'center' }}>
-          {/* Live badge */}
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(52,168,83,0.12)', border: '1px solid rgba(52,168,83,0.3)', borderRadius: 999, padding: '6px 16px', marginBottom: 32 }}>
-            <span style={{ position: 'relative', display: 'flex', width: 8, height: 8 }}>
-              <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: G.green, animation: 'ping 1.2s cubic-bezier(0,0,0.2,1) infinite', opacity: 0.6 }} />
-              <span style={{ width: 8, height: 8, borderRadius: '50%', background: G.green, position: 'relative' }} />
+      {/* ── Centered Hero Section (Clean & Precise) ────────────────────────── */}
+      <section className="relative z-10 py-14 sm:py-20 lg:py-24 px-6 text-center">
+        <div className="max-w-4xl mx-auto space-y-6">
+          
+          {/* Active Community Badge */}
+          <div className="inline-flex items-center gap-2 bg-green-50/90 border border-green-200/80 rounded-full px-4 py-1.5 shadow-sm">
+            <span className="relative flex w-2 h-2">
+              <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-75" />
+              <span className="relative w-2 h-2 rounded-full bg-green-500" />
             </span>
-            <span style={{ fontSize: 12, fontWeight: 700, color: G.green, letterSpacing: '0.02em' }}>240+ Active Developers · CIT Chapter</span>
-          </div>
-
-          {/* GDG Wordmark */}
-          <h1 style={{ fontSize: 'clamp(48px, 10vw, 84px)', fontWeight: 900, lineHeight: 1, letterSpacing: '-0.04em', marginBottom: 12 }}>
-            <span style={{ color: G.blue }}>G</span>
-            <span style={{ color: G.red }}>D</span>
-            <span style={{ color: G.yellow }}>G </span>
-            <span style={{ color: '#202124', fontWeight: 600, marginLeft: 10 }}>on Campus</span>
-            <br />
-            <span style={{ color: G.green }}>CIT</span>
-          </h1>
-
-          <p style={{ fontSize: 16, color: '#5F6368', fontWeight: 500, marginBottom: 24, letterSpacing: '0.02em' }}>
-            Coimbatore Institute of Technology
-          </p>
-
-          {/* Animated tagline */}
-          <div style={{ height: 72, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
-            <span style={{
-              fontSize: 'clamp(32px, 7vw, 60px)', fontWeight: 900, letterSpacing: '-0.03em',
-              color: '#202124', transition: 'opacity 0.18s ease',
-              opacity: taglineFade ? 1 : 0,
-            }}>
-              We{' '}
-              <span style={{ color: taglineColors[currentTaglineIndex] }}>
-                {taglines[currentTaglineIndex]}
-              </span>
+            <span className="text-xs font-bold text-green-700 tracking-wide">
+              240+ Active Developers · CIT Chapter
             </span>
           </div>
 
-          <p style={{   fontSize: 16, color: '#5F6368', lineHeight: 1.75, maxWidth: 560, margin: '0 auto 36px', fontWeight: 400 }}>
-            Explore Google Cloud, Flutter, Android, AI/ML and Web dev. Build with peers, ship your ideas, and grow as a developer.
-          </p>
-
-          {/* CTA Buttons */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center' }}>
-            {user ? (
-              <Link href="/dashboard" style={{
-                display: 'inline-flex', alignItems: 'center', gap: 8, padding: '13px 28px',
-                background: G.blue, color: '#fff', borderRadius: 999, fontSize: 15, fontWeight: 700,
-                textDecoration: 'none', boxShadow: '0 4px 16px rgba(66,133,244,0.35)',
-                transition: 'all 0.2s',
-              }}>
-                Go to Dashboard <ArrowRight style={{ width: 18, height: 18 }} />
-              </Link>
-            ) : (
-              <button onClick={() => login('viewer')} style={{
-                display: 'inline-flex', alignItems: 'center', gap: 8, padding: '13px 28px',
-                background: G.blue, color: '#fff', borderRadius: 999, fontSize: 15, fontWeight: 700,
-                border: 'none', cursor: 'pointer', boxShadow: '0 4px 16px rgba(66,133,244,0.35)',
-                transition: 'all 0.2s',
-              }}>
-                Join with Google <ArrowRight style={{ width: 18, height: 18 }} />
-              </button>
-            )}
-            <Link href="/events" style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8, padding: '13px 28px',
-              background: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(8px)',
-              color: '#3C4043', borderRadius: 999, fontSize: 15, fontWeight: 600,
-              textDecoration: 'none', border: '1.5px solid rgba(60,64,67,0.18)',
-              transition: 'all 0.2s',
-            }}>
-              Explore Events
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Stats Strip ───────────────────────────────────────────────────── */}
-      <section style={{ maxWidth: 900, margin: '-8px auto 0', padding: '0 24px', width: '100%' }}>
-        <div style={{
-          background: 'rgba(255,255,255,0.75)', backdropFilter: 'blur(12px)',
-          borderRadius: 24, border: '1.5px solid rgba(60,64,67,0.10)',
-          boxShadow: '0 8px 32px rgba(60,64,67,0.08)',
-          display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)',
-          overflow: 'hidden',
-        }} className="gdg-stats-grid">
-          {[
-            { icon: Users,   color: G.blue,   bg: '#E8F0FE', value: stats.members,  suffix: '+', label: 'Members'      },
-            { icon: Calendar,color: G.red,    bg: '#FCE8E6', value: stats.events,   suffix: '+', label: 'Events Hosted'},
-            { icon: Code,    color: G.green,  bg: '#E6F4EA', value: stats.projects, suffix: '+', label: 'Projects Built'},
-            { icon: Monitor, color: G.yellow, bg: '#FFF8E1', value: stats.techs,    suffix: '+', label: 'Technologies'  },
-          ].map(({ icon: Icon, color, bg, value, suffix, label }, i) => (
-            <div key={label} style={{
-              padding: '24px 16px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center',
-              borderRight: i < 3 ? '1px solid rgba(60,64,67,0.08)' : 'none',
-            }}>
-              <div style={{ width: 40, height: 40, borderRadius: 12, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
-                <Icon style={{ width: 20, height: 20, color }} />
-              </div>
-              <span style={{ fontSize: 30, fontWeight: 900, color: '#202124', letterSpacing: '-0.03em', lineHeight: 1 }}>{value}{suffix}</span>
-              <span style={{ fontSize: 11, fontWeight: 700, color: '#5F6368', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 4 }}>{label}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Upcoming Events ───────────────────────────────────────────────── */}
-      <section style={{ maxWidth: 1200, margin: '0 auto', padding: '72px 24px 56px' }}>
-        {/* Section header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 36 }}>
+          {/* Core Title Wordmark */}
           <div>
-            <div style={{ display: 'flex', gap: 5, marginBottom: 10 }}>
-              {[G.blue, G.red, G.yellow, G.green].map(c => (
-                <div key={c} style={{ width: 8, height: 8, borderRadius: '50%', background: c }} />
-              ))}
-            </div>
-            <h2 style={{ fontSize: 30, fontWeight: 900, color: '#202124', letterSpacing: '-0.03em', margin: 0 }}>
-              Upcoming Events
-            </h2>
-            <p style={{ fontSize: 14, color: '#5F6368', marginTop: 6, fontWeight: 400 }}>
-              Study jams, workshops, build camps and more.
+            <h1
+              className="font-display font-black leading-none tracking-tight text-gray-900"
+              style={{ fontSize: 'clamp(48px, 7vw, 84px)', letterSpacing: '-0.04em' }}
+            >
+              <span style={{ color: G.blue }}>G</span>
+              <span style={{ color: G.red }}>D</span>
+              <span style={{ color: G.yellow }}>G</span>
+              {' '}
+              <span className="text-gray-800 font-semibold" style={{ fontSize: '0.7em' }}>on Campus</span>
+              <br />
+              <span style={{ color: G.green }}>CIT</span>
+            </h1>
+            <p className="text-xs font-bold text-gray-400 tracking-widest uppercase mt-3">
+              Coimbatore Institute of Technology
             </p>
           </div>
-          <Link href="/events" style={{
-            display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700,
-            color: G.blue, textDecoration: 'none',
-          }}>
-            View all <ChevronRight style={{ width: 16, height: 16 }} />
-          </Link>
-        </div>
 
-        {events.length > 0 ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 20 }}>
-            {events.map(event => {
-              const cfg = eventCfg(event.type);
-              return (
-                <div key={event.id} style={{
-                  background: 'rgba(255,255,255,0.78)', backdropFilter: 'blur(12px)',
-                  borderRadius: 20, border: '1.5px solid rgba(60,64,67,0.10)',
-                  boxShadow: '0 4px 20px rgba(60,64,67,0.07)',
-                  overflow: 'hidden', display: 'flex', flexDirection: 'column',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-4px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 12px 36px rgba(60,64,67,0.14)'; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 20px rgba(60,64,67,0.07)'; }}
-                >
-                  {/* Color accent bar */}
-                  <div style={{ height: 4, background: `linear-gradient(90deg, ${cfg.color}, ${cfg.color}88)` }} />
-
-                  {/* Event type banner */}
-                  <div style={{ height: 140, background: cfg.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-                    <Sparkles style={{ width: 48, height: 48, color: cfg.color, opacity: 0.25 }} />
-                    <span style={{
-                      position: 'absolute', top: 14, left: 14,
-                      background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(8px)',
-                      color: cfg.color, fontSize: 10, fontWeight: 800, letterSpacing: '0.08em',
-                      textTransform: 'uppercase', padding: '4px 12px', borderRadius: 999,
-                      border: `1px solid ${cfg.color}44`,
-                    }}>{cfg.label}</span>
-                  </div>
-
-                  <div style={{ padding: '20px 22px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                    <h3 style={{ fontSize: 16, fontWeight: 800, color: '#202124', letterSpacing: '-0.01em', marginBottom: 10, lineHeight: 1.35 }}>
-                      {event.title}
-                    </h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 5, marginBottom: 12 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#5F6368' }}>
-                        <Calendar style={{ width: 13, height: 13, color: G.blue, flexShrink: 0 }} />
-                        {new Date(event.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#5F6368' }}>
-                        <MapPin style={{ width: 13, height: 13, color: G.red, flexShrink: 0 }} />
-                        {event.location}
-                      </div>
-                    </div>
-                    <p style={{ fontSize: 12, color: '#5F6368', lineHeight: 1.65, flex: 1, margin: 0, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-                      {event.description}
-                    </p>
-                    <div style={{ marginTop: 18, paddingTop: 14, borderTop: '1px solid rgba(60,64,67,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: 11, fontWeight: 600, color: '#9AA0A6' }}>
-                        {event.max_capacity ? `${event.max_capacity} seats` : 'Open Event'}
-                      </span>
-                      <Link href={`/events/${event.id}`} style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 16px',
-                        background: cfg.color, color: '#fff', borderRadius: 999,
-                        fontSize: 11, fontWeight: 800, textDecoration: 'none', letterSpacing: '0.02em',
-                      }}>
-                        RSVP <ChevronRight style={{ width: 14, height: 14 }} />
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div style={{
-            textAlign: 'center', padding: '48px 0',
-            background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(8px)',
-            borderRadius: 20, border: '1.5px solid rgba(60,64,67,0.08)',
-          }}>
-            <Calendar style={{ width: 40, height: 40, color: '#DADCE0', margin: '0 auto 12px' }} />
-            <p style={{ fontSize: 14, color: '#9AA0A6', fontWeight: 600 }}>No upcoming events right now. Check back soon!</p>
-          </div>
-        )}
-      </section>
-
-      {/* ── Chapter Highlights ────────────────────────────────────────────── */}
-      <section style={{
-        background: 'rgba(255,255,255,0.65)', backdropFilter: 'blur(12px)',
-        borderTop: '1px solid rgba(60,64,67,0.08)', borderBottom: '1px solid rgba(60,64,67,0.08)',
-        padding: '72px 24px',
-      }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 64, alignItems: 'center' }} className="gdg-highlights-grid">
-
-          {/* Left: Featured Achievement */}
-          <div>
-            <div style={{ display: 'flex', gap: 5, marginBottom: 12 }}>
-              {[G.blue, G.red, G.yellow, G.green].map(c => (
-                <div key={c} style={{ width: 8, height: 8, borderRadius: '50%', background: c }} />
-              ))}
-            </div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: '#E8F0FE', border: '1px solid #C5D9F9', borderRadius: 999, padding: '4px 14px', marginBottom: 16 }}>
-              <Award style={{ width: 13, height: 13, color: G.blue }} />
-              <span style={{ fontSize: 11, fontWeight: 800, color: G.blue, letterSpacing: '0.04em', textTransform: 'uppercase' }}>Featured Achievement</span>
-            </div>
-
-            {achievements.length > 0 ? (
-              <>
-                <h3 style={{ fontSize: 28, fontWeight: 900, color: '#202124', letterSpacing: '-0.03em', lineHeight: 1.2, marginBottom: 14 }}>
-                  {achievements[0].title}
-                </h3>
-                <p style={{ fontSize: 14, color: '#5F6368', lineHeight: 1.75, marginBottom: 20 }}>
-                  {achievements[0].description}
-                </p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 24 }}>
-                  {achievements[0].student_names.map((name, i) => (
-                    <span key={i} style={{ fontSize: 12, fontWeight: 600, color: '#3C4043', background: '#F1F3F4', border: '1px solid #E8EAED', borderRadius: 999, padding: '4px 12px' }}>
-                      {name}
-                    </span>
-                  ))}
-                  <span style={{ fontSize: 12, fontWeight: 700, color: G.yellow, background: '#FFF8E1', border: '1px solid #FBBC0544', borderRadius: 999, padding: '4px 12px' }}>
-                    🏆 {achievements[0].year}
-                  </span>
-                </div>
-                <Link href="/achievements" style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700,
-                  color: G.blue, textDecoration: 'none',
-                }}>
-                  Wall of Fame <ChevronRight style={{ width: 16, height: 16 }} />
-                </Link>
-              </>
-            ) : (
-              <p style={{ color: '#9AA0A6', fontSize: 14 }}>Loading achievements...</p>
-            )}
+          {/* Animated Tagline */}
+          <div className="h-12 flex items-center justify-center">
+            <span
+              className="font-display font-black text-gray-900"
+              style={{
+                fontSize: 'clamp(28px, 4vw, 42px)',
+                letterSpacing: '-0.03em',
+                opacity: fade ? 1 : 0,
+                transition: 'opacity 0.18s ease',
+              }}
+            >
+              We <span style={{ color: taglineColors[idx] }}>{taglines[idx]}</span>
+            </span>
           </div>
 
-          {/* Right: Gallery Strip */}
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <h4 style={{ fontSize: 11, fontWeight: 800, color: '#9AA0A6', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
-                Latest Gallery Snaps
-              </h4>
-              <Link href="/gallery" style={{ fontSize: 12, fontWeight: 700, color: G.blue, textDecoration: 'none' }}>
-                Browse Gallery
+          {/* Subtitle */}
+          <p className="text-gray-600 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto">
+            The official Google Developer Group on Campus at CIT. Build real-world projects, master modern Google technologies, and level up with peer developers.
+          </p>
+
+          {/* Action Buttons */}
+          <div className="flex flex-wrap gap-4 justify-center pt-2">
+            {user ? (
+              <Link
+                href="/dashboard"
+                className="group inline-flex items-center gap-2 px-7 py-3.5 bg-gdg-blue text-white rounded-full text-sm font-bold shadow-md shadow-blue-500/20 hover:bg-blue-700 hover:scale-105 hover:shadow-xl hover:shadow-blue-500/30 active:scale-95 transition-all duration-300"
+              >
+                <span>Go to Dashboard</span> 
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
               </Link>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              {gallery.length > 0 ? gallery.map(pic => (
-                <div key={pic.id} style={{
-                  aspectRatio: '16/9', borderRadius: 14, overflow: 'hidden',
-                  border: '1px solid rgba(60,64,67,0.08)',
-                  boxShadow: '0 2px 8px rgba(60,64,67,0.08)',
-                  position: 'relative',
-                }}>
-                  <img src={pic.cloudinary_url} alt={pic.tag || 'Gallery'} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }}
-                    onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.05)')}
-                    onMouseLeave={e => (e.currentTarget.style.transform = '')} />
-                </div>
-              )) : Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} style={{ aspectRatio: '16/9', borderRadius: 14, background: 'linear-gradient(135deg, #F1F3F4, #E8EAED)', animation: 'pulse 1.5s ease-in-out infinite' }} />
-              ))}
-            </div>
+            ) : (
+              <button
+                onClick={() => login('viewer')}
+                className="group inline-flex items-center gap-2 px-7 py-3.5 bg-gdg-blue text-white rounded-full text-sm font-bold shadow-md shadow-blue-500/20 hover:bg-blue-700 hover:scale-105 hover:shadow-xl hover:shadow-blue-500/30 active:scale-95 transition-all duration-300 cursor-pointer border-0"
+              >
+                <span>Join with Google</span> 
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
+              </button>
+            )}
+            <Link
+              href="/events"
+              className="group inline-flex items-center gap-2 px-7 py-3.5 bg-white border border-gray-200 text-gray-700 rounded-full text-sm font-semibold hover:bg-blue-50/50 hover:border-blue-300 hover:text-gdg-blue hover:shadow-md hover:scale-105 active:scale-95 transition-all duration-300"
+            >
+              <Calendar className="w-4 h-4 text-gdg-blue group-hover:scale-110 transition-transform duration-200" />
+              <span>Explore Events</span>
+            </Link>
           </div>
+
         </div>
       </section>
 
-      {/* ── Tech Domains Strip ────────────────────────────────────────────── */}
-      <section style={{ maxWidth: 1200, margin: '0 auto', padding: '64px 24px' }}>
-        <div style={{ textAlign: 'center', marginBottom: 40 }}>
-          <div style={{ display: 'flex', gap: 5, justifyContent: 'center', marginBottom: 10 }}>
-            {[G.blue, G.red, G.yellow, G.green].map(c => (
-              <div key={c} style={{ width: 8, height: 8, borderRadius: '50%', background: c }} />
+      {/* ── Stats Bar (Wide Fluid Container) ────────────────────────── */}
+      <section className="relative z-10 w-full px-4 sm:px-8 lg:px-14 py-4">
+        <div className="max-w-[1600px] mx-auto">
+          <div className="bg-white/90 backdrop-blur-xl rounded-2xl border border-gray-200/90 shadow-md grid grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0 divide-gray-100 overflow-hidden">
+            {[
+              { icon: Users,   color: G.blue,   bg: '#E8F0FE', value: stats.members,  label: 'Active Members',   sub: 'CIT Developers' },
+              { icon: Calendar,color: G.red,    bg: '#FCE8E6', value: stats.events,   label: 'Events Hosted',    sub: 'Workshops & Jams' },
+              { icon: Code,    color: G.green,  bg: '#E6F4EA', value: stats.projects, label: 'Projects Built',   sub: 'Open Source Repos' },
+              { icon: Monitor, color: G.yellow, bg: '#FFF8E1', value: stats.techs,    label: 'Tech Domains',     sub: 'Cloud, Web, AI, Mobile' },
+            ].map(({ icon: Icon, color, bg, value, label, sub }) => (
+              <div key={label} className="group p-6 flex items-center justify-center space-x-4 hover:bg-gray-50/80 hover:-translate-y-0.5 transition-all duration-300 cursor-default relative overflow-hidden">
+                <div 
+                  className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-sm group-hover:scale-110 group-hover:rotate-6 group-hover:shadow-md transition-all duration-300" 
+                  style={{ background: bg }}
+                >
+                  <Icon style={{ width: 22, height: 22, color }} />
+                </div>
+                <div>
+                  <div className="font-display font-black text-gray-900 text-2xl lg:text-3xl leading-none group-hover:text-gdg-blue transition-colors duration-300" style={{ letterSpacing: '-0.03em' }}>
+                    {value}+
+                  </div>
+                  <div className="text-xs font-bold text-gray-800 mt-1 leading-none">{label}</div>
+                  <div className="text-[10px] font-medium text-gray-400 mt-0.5">{sub}</div>
+                </div>
+              </div>
             ))}
           </div>
-          <h2 style={{ fontSize: 28, fontWeight: 900, color: '#202124', letterSpacing: '-0.03em', margin: 0 }}>What We Explore</h2>
-          <p style={{ fontSize: 14, color: '#5F6368', marginTop: 8 }}>Google-powered technology domains at CIT</p>
         </div>
+      </section>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 14 }}>
-          {[
-            { icon: Globe,    color: G.blue,   bg: '#E8F0FE', label: 'Web & Cloud',    sub: 'React, Next.js, Firebase' },
-            { icon: Zap,      color: G.yellow,  bg: '#FFF8E1', label: 'AI / ML',        sub: 'TensorFlow, Gemini API'   },
-            { icon: Code,     color: G.green,  bg: '#E6F4EA', label: 'Android & Flutter', sub: 'Kotlin, Dart, Flutter' },
-            { icon: Star,     color: G.red,    bg: '#FCE8E6', label: 'Google Cloud',   sub: 'GKE, BigQuery, Vertex AI' },
-            { icon: Sparkles, color: G.blue,   bg: '#E8F0FE', label: 'Open Source',    sub: 'GSoC, GitHub Contributions' },
-            { icon: Users,    color: G.green,  bg: '#E6F4EA', label: 'Community',      sub: 'Study Jams, Hackathons'   },
-          ].map(({ icon: Icon, color, bg, label, sub }) => (
-            <div key={label} style={{
-              background: 'rgba(255,255,255,0.72)', backdropFilter: 'blur(10px)',
-              borderRadius: 16, border: '1.5px solid rgba(60,64,67,0.09)',
-              padding: '20px 18px',
-              transition: 'transform 0.2s, box-shadow 0.2s',
-            }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-3px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 28px rgba(60,64,67,0.12)'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.boxShadow = ''; }}
-            >
-              <div style={{ width: 40, height: 40, borderRadius: 12, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
-                <Icon style={{ width: 20, height: 20, color }} />
+      {/* ── Upcoming Events ────────────────────────────────────────────── */}
+      <section className="relative z-10 w-full px-4 sm:px-8 lg:px-14 py-10">
+        <div className="max-w-[1600px] mx-auto">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-4 border-b border-gray-200/80">
+            <div>
+              <div className="flex gap-1 mb-2">
+                {[G.blue, G.red, G.yellow, G.green].map(c => (
+                  <span key={c} className="w-2 h-2 rounded-full block" style={{ background: c }} />
+                ))}
               </div>
-              <p style={{ fontSize: 14, fontWeight: 800, color: '#202124', margin: '0 0 4px', letterSpacing: '-0.01em' }}>{label}</p>
-              <p style={{ fontSize: 11, color: '#5F6368', margin: 0, lineHeight: 1.5 }}>{sub}</p>
+              <h2 className="font-display font-black text-gray-900 text-2xl sm:text-3xl" style={{ letterSpacing: '-0.03em' }}>
+                Upcoming Events &amp; Workshops
+              </h2>
+              <p className="text-xs sm:text-sm text-gray-500 mt-1">Study jams, hands-on workshops, build camps and expert sessions.</p>
             </div>
-          ))}
+            <Link 
+              href="/events" 
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gdg-blue text-white text-xs sm:text-sm font-extrabold shadow-md shadow-blue-500/20 hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105 active:scale-95 transition-all shrink-0 cursor-pointer w-max group"
+            >
+              <span>View More Events</span> 
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" />
+            </Link>
+          </div>
+
+          {events.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {events.map((ev, idx) => {
+                const accentColor = [G.blue, G.red, G.yellow, G.green][idx % 4];
+                return (
+                  <Link
+                    key={ev.id}
+                    href={`/events?event=${ev.id}#event-${ev.id}`}
+                    className="group bg-white/85 backdrop-blur-xl rounded-2xl border border-gray-200/90 p-6 sm:p-7 shadow-xs hover:shadow-xl hover:shadow-blue-900/5 hover:-translate-y-1.5 hover:border-gray-300 transition-all duration-300 flex flex-col justify-between relative overflow-hidden"
+                  >
+                    {/* Top Google Color Accent Bar */}
+                    <div 
+                      className="absolute top-0 left-0 h-1.5 w-12 group-hover:w-full transition-all duration-500 rounded-r-full group-hover:rounded-none"
+                      style={{ background: accentColor }}
+                    />
+
+                    {/* Ambient Glow */}
+                    <div 
+                      className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full opacity-10 group-hover:opacity-25 blur-2xl transition-all duration-500 pointer-events-none"
+                      style={{ background: accentColor }}
+                    />
+
+                    <div className="space-y-3 relative z-10 pt-2">
+                      <div className="flex items-start justify-between gap-3">
+                        <h3 className="font-display font-black text-gray-900 text-lg sm:text-xl leading-snug group-hover:text-gdg-blue transition-colors line-clamp-2" style={{ letterSpacing: '-0.02em' }}>
+                          {ev.title}
+                        </h3>
+                        <span className="w-8 h-8 rounded-full bg-gray-50 group-hover:bg-blue-50 flex items-center justify-center text-gray-400 group-hover:text-gdg-blue transition-colors shrink-0 mt-0.5">
+                          <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                        </span>
+                      </div>
+                      <p className="text-xs sm:text-sm text-gray-600 line-clamp-3 leading-relaxed font-normal">
+                        {ev.description}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-12 bg-white/60 backdrop-blur-sm rounded-2xl border border-gray-200">
+              <Calendar className="w-8 h-8 text-gray-300 mx-auto mb-3" />
+              <p className="text-sm text-gray-400 font-semibold">No upcoming events right now.</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ── Community Spotlight & Highlights Slideshow ───────────────────────────── */}
+      <SpotlightSlideshow achievements={achievements} gallery={gallery} events={events} user={user} login={login} />
+
+
+      {/* ── Tech Domains Section ────────────────────────────────────────── */}
+      <section className="relative z-10 w-full px-4 sm:px-8 lg:px-14 py-10">
+        <div className="max-w-[1600px] mx-auto">
+          <div className="mb-6 pb-4 border-b border-gray-200/80">
+            <div className="flex gap-1 mb-2">
+              {[G.blue, G.red, G.yellow, G.green].map(c => (
+                <span key={c} className="w-2 h-2 rounded-full block" style={{ background: c }} />
+              ))}
+            </div>
+            <h2 className="font-display font-black text-gray-900 text-2xl sm:text-3xl" style={{ letterSpacing: '-0.03em' }}>What We Build &amp; Learn</h2>
+            <p className="text-xs text-gray-500 mt-1">Google technology domains supported at CIT Chapter</p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-5">
+            {techDomains.map(({ icon: Icon, color, bg, label, sub }) => (
+              <div 
+                key={label} 
+                className="group bg-white/85 backdrop-blur-md rounded-2xl border border-gray-200 p-5 hover:-translate-y-2 hover:shadow-xl hover:border-gray-300 transition-all duration-300 cursor-pointer relative overflow-hidden"
+              >
+                {/* Top Accent Line (Matches Domain Color) */}
+                <div 
+                  className="absolute top-0 left-0 h-1.5 w-0 group-hover:w-full transition-all duration-300"
+                  style={{ background: color }}
+                />
+
+                {/* Ambient Soft Glow */}
+                <div 
+                  className="absolute -right-6 -bottom-6 w-24 h-24 rounded-full opacity-0 group-hover:opacity-20 blur-xl transition-all duration-500 pointer-events-none"
+                  style={{ background: color }}
+                />
+
+                <div 
+                  className="w-10 h-10 rounded-xl flex items-center justify-center mb-3 shadow-sm group-hover:scale-115 group-hover:-rotate-6 group-hover:shadow-md transition-all duration-300" 
+                  style={{ background: bg }}
+                >
+                  <Icon style={{ width: 20, height: 20, color }} />
+                </div>
+                
+                <p className="text-xs font-extrabold text-gray-900 mb-1 leading-tight group-hover:opacity-90 transition-colors">
+                  {label}
+                </p>
+                <p className="text-[10px] text-gray-400 leading-relaxed">{sub}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Bottom CTA Banner ────────────────────────────────────────────── */}
+      <section className="relative z-10 w-full px-4 sm:px-8 lg:px-14 pb-14">
+        <div className="max-w-[1600px] mx-auto relative rounded-3xl overflow-hidden bg-gradient-to-br from-gdg-blue via-blue-600 to-indigo-700 px-8 py-12 sm:px-16 text-center shadow-xl shadow-blue-200/50">
+          <div className="absolute -top-12 -right-12 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-12 -left-12 w-56 h-56 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative z-10 max-w-2xl mx-auto">
+            <h2 className="font-display font-black text-white text-2xl sm:text-3xl lg:text-4xl leading-tight mb-3" style={{ letterSpacing: '-0.03em' }}>
+              Ready to grow with your developer community?
+            </h2>
+            <p className="text-white/85 text-sm sm:text-base mb-8 leading-relaxed">
+              Connect with 240+ student developers at CIT — attend free workshops, participate in hackathons, and build projects together.
+            </p>
+            <div className="flex flex-wrap gap-3.5 justify-center">
+              {user ? (
+                <Link href="/events" className="group inline-flex items-center gap-2 px-8 py-3.5 bg-white text-gray-900 rounded-full text-sm font-extrabold hover:bg-gray-50 hover:scale-105 active:scale-95 transition-all shadow-lg hover:shadow-2xl">
+                  <Calendar className="w-4 h-4 text-gdg-blue group-hover:scale-110 transition-transform" /> 
+                  <span>Browse Events</span>
+                </Link>
+              ) : (
+                <button onClick={() => login('viewer')} className="group inline-flex items-center gap-2 px-8 py-3.5 bg-white text-gray-900 rounded-full text-sm font-extrabold hover:bg-gray-50 hover:scale-105 active:scale-95 transition-all shadow-lg hover:shadow-2xl cursor-pointer border-0">
+                  <span>Join with Google</span> 
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </button>
+              )}
+              <Link href="/events" className="group inline-flex items-center gap-2 px-8 py-3.5 bg-white/15 border border-white/30 text-white rounded-full text-sm font-semibold hover:bg-white/25 hover:scale-105 active:scale-95 transition-all">
+                <Radio className="w-4 h-4 animate-pulse group-hover:scale-110 transition-transform" /> 
+                <span>Live Sessions</span>
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
       <Footer />
 
-      <style>{`
-        @keyframes ping {
-          75%, 100% { transform: scale(2); opacity: 0; }
-        }
-        @keyframes pulse {
-          0%, 100% { opacity: 1; } 50% { opacity: 0.5; }
-        }
-
-        /* Mobile responsive overrides */
-        @media (max-width: 768px) {
-          .gdg-stats-grid {
-            grid-template-columns: repeat(2, 1fr) !important;
-          }
-          .gdg-highlights-grid {
-            grid-template-columns: 1fr !important;
-            gap: 32px !important;
-          }
-          /* Section header row → stack */
-          section > div > div[style*="space-between"] {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 8px;
-          }
-          /* Events grid → 1 col */
-          section div[style*="minmax(320px"] {
-            grid-template-columns: 1fr !important;
-          }
-          /* Tech domains → 2 col */
-          section div[style*="minmax(200px"] {
-            grid-template-columns: repeat(2, 1fr) !important;
-          }
-          /* CTA buttons: full width on mobile */
-          section div[style*="flexWrap: 'wrap'"] {
-            flex-direction: column;
-            align-items: stretch;
-          }
-          section div[style*="flexWrap: 'wrap'"] a,
-          section div[style*="flexWrap: 'wrap'"] button {
-            justify-content: center;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .gdg-stats-grid {
-            grid-template-columns: repeat(2, 1fr) !important;
-          }
-        }
-      `}</style>
+      {/* Scroll to top */}
+      <button
+        onClick={scrollToTop}
+        aria-label="Scroll to top"
+        style={{
+          opacity: showTop ? 1 : 0,
+          pointerEvents: showTop ? 'auto' : 'none',
+          transform: showTop ? 'translateY(0) scale(1)' : 'translateY(12px) scale(0.9)',
+        }}
+        className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-50 w-11 h-11 rounded-full bg-gdg-blue text-white shadow-lg hover:shadow-xl hover:bg-blue-700 hover:scale-110 active:scale-95 transition-all duration-300 flex items-center justify-center cursor-pointer border border-white/20"
+      >
+        <ArrowUp className="w-5 h-5" />
+      </button>
     </div>
   );
 }
+
+// ── Interactive Community Spotlight Slideshow Component ─────────────────────────────
+interface SpotlightSlideshowProps {
+  achievements: Achievement[];
+  gallery: GalleryItem[];
+  events: Event[];
+  user: any;
+  login: (role?: any) => Promise<any>;
+}
+
+function SpotlightSlideshow({ achievements, gallery, events, user, login }: SpotlightSlideshowProps) {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  const topAchievement = achievements[0] || {
+    id: 'ach-1',
+    title: 'Smart India Hackathon 2025 Winners',
+    description: 'GDG CIT team won first place in SIH 2025 with an AI-powered traffic management solution.',
+    student_names: ['Arun Kumar', 'Divya S', 'Manoj K', 'Kavya B'],
+    year: '2025',
+    category: 'Hackathon'
+  };
+
+  const topEvent = events[0] || {
+    id: 'evt-1',
+    title: 'Google Cloud Study Jam v2: Live Lab Session & Registration',
+    description: 'Hands-on Google Cloud Platform (GCP) lab session with active Qwiklabs credits and live mentor guidance.',
+    date: new Date().toISOString(),
+    location: 'CIT IT Seminar Hall, Block 3',
+    type: 'study_jam'
+  };
+
+  const slides = [
+    {
+      id: 'achievement-slide',
+      badge: 'FEATURED ACHIEVEMENT SPOTLIGHT',
+      badgeBg: 'bg-blue-50 border-blue-100 text-gdg-blue',
+      icon: Award,
+      title: topAchievement.title,
+      description: topAchievement.description,
+      ctaText: 'View Wall of Fame',
+      ctaLink: '/achievements',
+      renderVisual: () => (
+        <div className="bg-gradient-to-br from-blue-50/90 via-white to-amber-50/70 rounded-2xl p-4 sm:p-5 border border-blue-100 shadow-md space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-extrabold border border-amber-200">
+              <Trophy className="w-3.5 h-3.5 text-amber-600" /> SIH 2025 Champion
+            </span>
+            <span className="text-xs font-bold text-gray-400">Team CIT</span>
+          </div>
+          <div className="space-y-1">
+            <h4 className="font-display font-bold text-gray-900 text-sm sm:text-base leading-snug">{topAchievement.title}</h4>
+            <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">{topAchievement.description}</p>
+          </div>
+          <div className="pt-2 border-t border-gray-100 flex flex-wrap gap-1.5">
+            {topAchievement.student_names.map((name, i) => (
+              <span key={i} className="text-[11px] font-semibold text-gray-700 bg-white border border-gray-200 rounded-full px-2.5 py-0.5 shadow-2xs">
+                {name}
+              </span>
+            ))}
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 'gallery-slide',
+      badge: 'CHAPTER MOMENTS & GALLERY',
+      badgeBg: 'bg-emerald-50 border-emerald-100 text-gdg-green',
+      icon: ImageIcon,
+      title: 'Interactive Workshops & Hackathons',
+      description: 'Moments captured from our recent interactive sessions, cloud study jams, and developer meetups at CIT.',
+      ctaText: 'Browse Photo Gallery',
+      ctaLink: '/gallery',
+      renderVisual: () => (
+        <div className="grid grid-cols-2 gap-2.5">
+          {gallery.length > 0 ? gallery.slice(0, 4).map(pic => (
+            <div key={pic.id} className="h-24 sm:h-28 rounded-xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-md group transition-all">
+              <img src={pic.cloudinary_url} alt={pic.tag || 'Gallery'} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+            </div>
+          )) : (
+            <>
+              <div className="h-24 sm:h-28 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center border border-blue-200">
+                <span className="text-xs font-bold text-blue-800">Study Jams</span>
+              </div>
+              <div className="h-24 sm:h-28 rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center border border-emerald-200">
+                <span className="text-xs font-bold text-emerald-800">Hackathons</span>
+              </div>
+              <div className="h-24 sm:h-28 rounded-xl bg-gradient-to-br from-amber-100 to-yellow-100 flex items-center justify-center border border-amber-200">
+                <span className="text-xs font-bold text-amber-800">Code Labs</span>
+              </div>
+              <div className="h-24 sm:h-28 rounded-xl bg-gradient-to-br from-rose-100 to-red-100 flex items-center justify-center border border-rose-200">
+                <span className="text-xs font-bold text-rose-800">Meetups</span>
+              </div>
+            </>
+          )}
+        </div>
+      )
+    },
+    {
+      id: 'event-slide',
+      badge: 'UPCOMING WORKSHOP SPOTLIGHT',
+      badgeBg: 'bg-amber-50 border-amber-100 text-amber-700',
+      icon: Sparkles,
+      title: topEvent.title,
+      description: topEvent.description,
+      ctaText: 'RSVP & Join Session',
+      ctaLink: `/events/${topEvent.id}`,
+      renderVisual: () => (
+        <div className="bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600 rounded-2xl p-4 sm:p-5 text-white shadow-md space-y-3 relative overflow-hidden">
+          <div className="flex items-center justify-between relative z-10">
+            <span className="text-[10px] font-extrabold uppercase tracking-wider bg-white/20 backdrop-blur-sm px-2.5 py-0.5 rounded-full text-white border border-white/30">
+              Live &amp; Upcoming
+            </span>
+            <span className="text-xs font-extrabold text-amber-100">CIT Chapter</span>
+          </div>
+          <div className="space-y-1 relative z-10">
+            <h4 className="font-display font-black text-base sm:text-lg leading-snug text-white">{topEvent.title}</h4>
+            <p className="text-xs text-white/90 leading-relaxed line-clamp-2">{topEvent.description}</p>
+          </div>
+          <div className="pt-2 border-t border-white/20 flex items-center justify-between text-xs text-white/90 relative z-10">
+            <span className="flex items-center gap-1 font-medium"><MapPin className="w-3.5 h-3.5" /> {topEvent.location}</span>
+            <span className="font-extrabold">Free Admission</span>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 'announcement-slide',
+      badge: 'COMMUNITY ANNOUNCEMENT',
+      badgeBg: 'bg-red-50 border-red-100 text-gdg-red',
+      icon: Users,
+      title: 'GDGoC CIT 2025–26 Core Team Registrations',
+      description: 'Become an active core team member, event lead, or mentor. Gain hands-on leadership experience and official Google Developer badges.',
+      ctaText: 'Explore Community',
+      ctaLink: '/events',
+      renderVisual: () => (
+        <div className="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200 shadow-md space-y-3">
+          <div className="flex items-center space-x-3">
+            <img src="/gdgoc-logo.png" alt="GDGoC CIT" className="w-9 h-9 object-contain" />
+            <div>
+              <h4 className="font-display font-bold text-gray-900 text-sm">GDGoC CIT Developer Network</h4>
+              <p className="text-xs text-gray-500">Official Campus Chapter</p>
+            </div>
+          </div>
+          <p className="text-xs text-gray-600 leading-relaxed">
+            Collaborate on real-world projects, participate in Google Cloud Jams, and elevate your developer profile with our active peer community.
+          </p>
+          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-100">
+            <div className="bg-blue-50 rounded-lg p-1.5 text-center text-xs font-bold text-gdg-blue">240+ Members</div>
+            <div className="bg-emerald-50 rounded-lg p-1.5 text-center text-xs font-bold text-gdg-green">48+ Events</div>
+          </div>
+        </div>
+      )
+    }
+  ];
+
+  const goToSlide = (nextIndex: number) => {
+    if (isAnimating || nextIndex === currentSlide) return;
+    setIsAnimating(true);
+    setCurrentSlide(nextIndex);
+    setTimeout(() => setIsAnimating(false), 400);
+  };
+
+  const handleNextSlide = () => {
+    goToSlide((currentSlide + 1) % slides.length);
+  };
+
+  const handlePrevSlide = () => {
+    goToSlide((currentSlide - 1 + slides.length) % slides.length);
+  };
+
+  // Auto-play timer (5s)
+  useEffect(() => {
+    if (slides.length <= 1 || isPaused) return;
+    const timer = setInterval(() => {
+      goToSlide((currentSlide + 1) % slides.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [slides.length, isPaused, currentSlide]);
+
+  const activeSlide = slides[currentSlide];
+  const IconComp = activeSlide.icon;
+
+  return (
+    <section
+      className="relative z-10 w-full bg-white/45 backdrop-blur-xl border-t border-b border-gray-200/50 py-4 shadow-xs overflow-hidden"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+    >
+      {/* Background Dot & Constellation Particle Canvas from Events Page */}
+      <ReactBitsBackground className="opacity-40" />
+
+      <div className="w-full px-6 sm:px-12 lg:px-20 relative group z-10">
+        {/* Top Right Slide Counter Badge */}
+        <div className="absolute top-1 right-6 sm:right-16 z-30 bg-white/90 backdrop-blur-md border border-gray-200 text-gray-700 text-xs font-extrabold px-3 py-0.5 rounded-full shadow-xs">
+          {currentSlide + 1} of {slides.length}
+        </div>
+
+        {/* Navigation Arrows */}
+        <button
+          onClick={handlePrevSlide}
+          aria-label="Previous slide"
+          className="absolute left-2 sm:left-4 lg:left-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-white/90 border border-gray-200 text-gray-800 shadow-md hover:bg-white hover:scale-105 active:scale-95 transition-all flex items-center justify-center cursor-pointer"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        <button
+          onClick={handleNextSlide}
+          aria-label="Next slide"
+          className="absolute right-2 sm:right-4 lg:right-6 top-1/2 -translate-y-1/2 z-30 w-10 h-10 rounded-full bg-white/90 border border-gray-200 text-gray-800 shadow-md hover:bg-white hover:scale-105 active:scale-95 transition-all flex items-center justify-center cursor-pointer"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+
+        {/* Clean Fade-Slide Transition Wrapper */}
+        <div className="w-full min-h-[220px] flex items-center py-2 overflow-hidden">
+          <div
+            key={activeSlide.id}
+            className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-center"
+            style={{
+              animation: 'fadeInSlide 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards',
+              willChange: 'opacity, transform',
+              transform: 'translateZ(0)'
+            }}
+          >
+            {/* Left Text & CTA Column */}
+            <div className="lg:col-span-7 space-y-3">
+              <div className="flex items-center space-x-2">
+                {[G.blue, G.red, G.yellow, G.green].map(c => (
+                  <span key={c} className="w-2 h-2 rounded-full block" style={{ background: c }} />
+                ))}
+              </div>
+
+              <div className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-0.5 text-xs font-extrabold border ${activeSlide.badgeBg}`}>
+                <IconComp className="w-3.5 h-3.5" />
+                <span>{activeSlide.badge}</span>
+              </div>
+
+              <div className="space-y-1.5">
+                <h3 className="font-display font-black text-gray-900 text-xl sm:text-2xl lg:text-3xl tracking-tight leading-tight" style={{ letterSpacing: '-0.03em' }}>
+                  {activeSlide.title}
+                </h3>
+                <p className="text-gray-600 text-xs sm:text-sm leading-relaxed max-w-3xl">
+                  {activeSlide.description}
+                </p>
+              </div>
+
+              <div className="pt-1">
+                <Link
+                  href={activeSlide.ctaLink}
+                  className="px-5 py-2.5 rounded-full bg-gdg-blue text-white font-extrabold text-xs sm:text-sm shadow-md shadow-blue-200 hover:bg-blue-700 hover:scale-105 active:scale-95 transition-all inline-flex items-center gap-2 cursor-pointer"
+                >
+                  <span>{activeSlide.ctaText}</span>
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Right Visual Column */}
+            <div className="lg:col-span-5">
+              {activeSlide.renderVisual()}
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Dot & Category Bar */}
+        <div className="pt-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {slides.map((s, idx) => {
+              const isActive = currentSlide === idx;
+              return (
+                <button
+                  key={`dot-spotlight-${idx}`}
+                  onClick={() => goToSlide(idx)}
+                  aria-label={`Slide ${idx + 1}: ${s.title}`}
+                  className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                    isActive ? 'w-8 bg-gdg-blue shadow-xs' : 'w-2 bg-gray-300 hover:bg-gray-400'
+                  }`}
+                />
+              );
+            })}
+          </div>
+
+          <div className="hidden sm:flex items-center gap-3">
+            <span className="text-gray-500 text-xs font-bold bg-gray-100 px-3 py-0.5 rounded-full border border-gray-200">
+              {activeSlide.badge}
+            </span>
+          </div>
+        </div>
+
+      </div>
+
+      <style jsx>{`
+        @keyframes fadeInSlide {
+          from {
+            opacity: 0;
+            transform: translateY(8px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
+    </section>
+  );
+}
+
+
+
+
+
