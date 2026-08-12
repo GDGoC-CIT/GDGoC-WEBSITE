@@ -10,7 +10,7 @@ const GDG_COLORS = [
 ];
 
 const SYMBOLS = [
-  '<', '>', '{', '}', '(', ')', '[', ']', 
+  '<', '>', '{', '}', '(', ')', '[', ']',
   '#', ';', '*', '&', '|', '=', '+', '~', '@'
 ];
 
@@ -37,13 +37,13 @@ const DRIFT_SPEED = 0.15;
 
 function createParticles(count: number, w: number, h: number): Particle[] {
   const particles: Particle[] = [];
-  
+
   // Shuffle symbols to guarantee unique ones are picked
   const shuffledSymbols = [...SYMBOLS].sort(() => Math.random() - 0.5);
 
   for (let i = 0; i < count; i++) {
     const size = 50 + Math.random() * 70; // 50 to 120px font size
-    
+
     // Pick a unique symbol from the shuffled list
     const symbol = shuffledSymbols[i] || SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
 
@@ -129,45 +129,45 @@ export default function AccentLayer() {
         for (let j = i + 1; j < particles.length; j++) {
           const p1 = particles[i];
           const p2 = particles[j];
-          
+
           const dx = p2.x - p1.x;
           const dy = p2.y - p1.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          
+
           // Collision distance (using ~35% of size because text has empty space)
           const minDist = (p1.size + p2.size) * 0.35;
-          
+
           if (dist < minDist && dist > 0) {
             const nx = dx / dist;
             const ny = dy / dist;
-            
+
             const rvx = p2.vx - p1.vx;
             const rvy = p2.vy - p1.vy;
             const velAlongNormal = rvx * nx + rvy * ny;
-            
+
             // Only bounce if they are moving towards each other
             if (velAlongNormal < 0) {
               const bounciness = 1.2; // >1 means they get a slight dash/boost on collision
               const impulse = -(1 + bounciness) * velAlongNormal / 2;
-              
+
               const impulseX = impulse * nx;
               const impulseY = impulse * ny;
-              
+
               p1.vx -= impulseX;
               p1.vy -= impulseY;
               p2.vx += impulseX;
               p2.vy += impulseY;
             }
-            
+
             // Push apart slightly to prevent getting stuck
             const penetration = minDist - dist;
             if (penetration > 0.5) {
-               const cx = nx * (penetration * 0.5);
-               const cy = ny * (penetration * 0.5);
-               p1.x -= cx;
-               p1.y -= cy;
-               p2.x += cx;
-               p2.y += cy;
+              const cx = nx * (penetration * 0.5);
+              const cy = ny * (penetration * 0.5);
+              p1.x -= cx;
+              p1.y -= cy;
+              p2.x += cx;
+              p2.y += cy;
             }
           }
         }
@@ -194,7 +194,7 @@ export default function AccentLayer() {
           p.x = w - pad;
           p.vx *= -1;
         }
-        
+
         if (p.y < pad) {
           p.y = pad;
           p.vy *= -1;
@@ -216,7 +216,7 @@ export default function AccentLayer() {
       ctx.rotate(p.rotation);
       ctx.globalAlpha = p.opacity;
       ctx.fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
-      
+
       ctx.font = `bold ${p.size}px "Google Sans Display", "Outfit", monospace`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
