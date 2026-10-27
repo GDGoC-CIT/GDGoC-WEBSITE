@@ -2,21 +2,11 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import Script from "next/script";
-import GlobalBackground from "@/components/GlobalBackground";
+import { DynamicBackground } from "@/components/DynamicBackground";
 
 export const metadata: Metadata = {
   title: "GDG on Campus CIT — Community Portal",
   description: "The official community portal for Google Developer Groups on Campus, Coimbatore Institute of Technology.",
-  icons: {
-    icon: [
-      { url: '/gdgoc-logo.png', type: 'image/png', sizes: '512x512' },
-    ],
-    apple: '/gdgoc-logo.png',
-    shortcut: '/gdgoc-logo.png',
-  },
-  verification: {
-    google: "8VL3tIeIlUXN6kKVIetM60WczsGXjaShFBN-5QTphlc",
-  },
 };
 
 export default function RootLayout({
@@ -26,17 +16,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full scroll-smooth antialiased">
-      <body className="font-sans min-h-screen flex flex-col text-gray-900" style={{ position: 'relative' }}>
-        {/* Global animated Google-themed background — fixed, z-0, behind everything */}
-        <GlobalBackground />
-
-        {/* Page content renders above the background */}
-        <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-          <AuthProvider>
+      <body className="font-sans min-h-screen flex flex-col bg-gdg-bg text-gray-900">
+        <DynamicBackground accent />
+        <AuthProvider>
+          <div style={{ position: 'relative', zIndex: 1 }}>
             {children}
-          </AuthProvider>
-        </div>
-
+          </div>
+        </AuthProvider>
         {/* Google Identity Services client script */}
         <Script src="https://accounts.google.com/gsi/client" strategy="lazyOnload" />
       </body>
