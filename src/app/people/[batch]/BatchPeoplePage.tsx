@@ -5,7 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { db, Person, Badge, Batch } from '@/lib/db';
-import { Linkedin, Github, Mail, Globe, ChevronDown, Users } from 'lucide-react';
+import { Linkedin, Github, Mail, Globe, ChevronDown, Users, Search, Filter } from 'lucide-react';
 import PersonDetail from './PersonDetail';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -225,6 +225,8 @@ export default function BatchPeoplePage() {
   const [loading, setLoading] = useState(true);
   const [batchOpen, setBatchOpen] = useState(false);
   const [batches, setBatches] = useState<Batch[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedRole, setSelectedRole] = useState('All');
 
   // Fetch batches list from DB (same source as admin panel)
   useEffect(() => {
@@ -241,32 +243,99 @@ export default function BatchPeoplePage() {
 
   // Fetch directory and ordering values
   useEffect(() => {
+    let cancelled = false;
+
     async function load() {
       setLoading(true);
       try {
-        const [allPeople, orderList, badgeList] = await Promise.all([
-          db.getPeople(batchName),
+        const allPeople = await db.getPeople(batchName);
+        if (cancelled) return;
+
+        setPeople(allPeople);
+        setLoading(false);
+
+        const [roleOrderResult, badgeResult] = await Promise.allSettled([
           db.getRoleOrder(batchName),
           db.getBadges(batchName)
         ]);
-        setPeople(allPeople);
-        setRolesOrder(orderList);
-        const map = new Map<string, Badge>();
-        badgeList.forEach(b => map.set(b.id, b));
-        setBadgesMap(map);
+
+        if (cancelled) return;
+
+        if (roleOrderResult.status === 'fulfilled') {
+          setRolesOrder(roleOrderResult.value);
+        }
+
+        if (badgeResult.status === 'fulfilled') {
+          const map = new Map<string, Badge>();
+          badgeResult.value.forEach((b: Badge) => map.set(b.id, b));
+          setBadgesMap(map);
+        }
       } catch (err) {
-        console.error('Failed to load batch directory:', err);
-      } finally {
-        setLoading(false);
+        if (!cancelled) {
+          console.error('Failed to load batch directory:', err);
+          setLoading(false);
+        }
       }
     }
+
     load();
+    return () => {
+      cancelled = true;
+    };
   }, [batchName]);
+
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+
+  const availableRoles = React.useMemo(() => {
+    const uniqueRoles = new Set<string>();
+    people.forEach(person => {
+      if (person.role) uniqueRoles.add(person.role);
+    });
+
+    return Array.from(uniqueRoles).sort((a, b) => {
+      const indexA = rolesOrder.indexOf(a);
+      const indexB = rolesOrder.indexOf(b);
+
+      if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+      if (indexA !== -1) return -1;
+      if (indexB !== -1) return 1;
+      return a.localeCompare(b);
+    });
+  }, [people, rolesOrder]);
+
+  const filteredPeople = React.useMemo(() => {
+    let result = people;
+
+    if (normalizedQuery) {
+      result = result.filter(person => {
+        const searchableText = [
+          person.name,
+          person.role,
+          person.department,
+          person.batch,
+          person.email,
+          person.about,
+          ...(person.skills || [])
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+
+        return searchableText.includes(normalizedQuery);
+      });
+    }
+
+    if (selectedRole !== 'All') {
+      result = result.filter(person => person.role === selectedRole);
+    }
+
+    return result;
+  }, [normalizedQuery, people, selectedRole]);
 
   // Group by role with custom display order
   const grouped = React.useMemo(() => {
     const map = new Map<string, Person[]>();
-    people.forEach(p => {
+    filteredPeople.forEach(p => {
       const key = p.role;
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(p);
@@ -294,7 +363,7 @@ export default function BatchPeoplePage() {
     remaining.sort((a, b) => a[0].localeCompare(b[0]));
 
     return [...sortedSections, ...remaining];
-  }, [people, rolesOrder]);
+  }, [filteredPeople, rolesOrder]);
 
   const searchParams = useSearchParams();
   const memberId = searchParams.get('id');
@@ -392,6 +461,72 @@ export default function BatchPeoplePage() {
               )}
             </div>
           </div>
+
+          <div style={{ maxWidth: 640, width: '100%', margin: '24px auto 0', padding: '0 16px', boxSizing: 'border-box' }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
+              <div style={{ position: 'relative', flex: '1 1 240px', minWidth: 220 }}>
+                <Search style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', width: 17, height: 17, color: '#9AA0A6', pointerEvents: 'none' }} />
+                <input
+                  id="people-search"
+                  type="search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search members"
+                  style={{
+                    width: '100%',
+                    height: 46,
+                    padding: '0 16px 0 42px',
+                    borderRadius: 999,
+                    border: '1px solid #E3E6EA',
+                    background: '#fff',
+                    fontSize: 14,
+                    color: '#202124',
+                    outline: 'none',
+                    boxShadow: '0 2px 10px rgba(60,64,67,0.06)',
+                    transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+                    boxSizing: 'border-box',
+                  }}
+                  onFocus={(e) => {
+                    (e.currentTarget as HTMLInputElement).style.borderColor = '#4285F4';
+                    (e.currentTarget as HTMLInputElement).style.boxShadow = '0 0 0 4px rgba(66,133,244,0.12)';
+                  }}
+                  onBlur={(e) => {
+                    (e.currentTarget as HTMLInputElement).style.borderColor = '#E3E6EA';
+                    (e.currentTarget as HTMLInputElement).style.boxShadow = '0 2px 10px rgba(60,64,67,0.06)';
+                  }}
+                />
+              </div>
+
+              <div style={{ position: 'relative', flex: '0 0 240px', minWidth: 220 }}>
+                <Filter style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, color: '#5F6368', pointerEvents: 'none', zIndex: 1 }} />
+                <select
+                  value={selectedRole}
+                  onChange={(e) => setSelectedRole(e.target.value)}
+                  style={{
+                    width: '100%',
+                    height: 46,
+                    padding: '0 42px 0 40px',
+                    borderRadius: 999,
+                    border: '1px solid #E3E6EA',
+                    background: '#fff',
+                    fontSize: 14,
+                    color: '#202124',
+                    outline: 'none',
+                    boxShadow: '0 2px 10px rgba(60,64,67,0.06)',
+                    appearance: 'none',
+                    cursor: 'pointer',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <option value="All">All Roles</option>
+                  {availableRoles.map(role => (
+                    <option key={role} value={role}>{role}</option>
+                  ))}
+                </select>
+                <ChevronDown style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', width: 16, height: 16, color: '#5F6368', pointerEvents: 'none' }} />
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Directory Sections */}
@@ -403,7 +538,9 @@ export default function BatchPeoplePage() {
         ) : grouped.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 24px' }}>
             <Users style={{ width: 48, height: 48, color: '#DADCE0', margin: '0 auto 16px' }} />
-            <p style={{ fontSize: 16, color: '#5F6368', fontWeight: 500 }}>No members registered for this batch.</p>
+            <p style={{ fontSize: 16, color: '#5F6368', fontWeight: 500 }}>
+              {searchQuery.trim() ? 'No members match your search.' : 'No members registered for this batch.'}
+            </p>
           </div>
         ) : (
           <div className="team-container">
@@ -472,6 +609,18 @@ export default function BatchPeoplePage() {
           }
           .team-section {
             margin-bottom: 48px !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          #people-search {
+            font-size: 13px !important;
+            padding: 11px 14px 11px 40px !important;
+          }
+
+          select {
+            font-size: 13px !important;
+            padding: 0 36px 0 36px !important;
           }
         }
 
