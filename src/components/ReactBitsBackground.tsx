@@ -28,18 +28,18 @@ export default function ReactBitsBackground({ className = '' }: { className?: st
     const colors = ['#1A73E8', '#EA4335', '#FBBC04', '#34A853', '#FFFFFF'];
 
     // Generate particles
-    const particleCount = Math.min(Math.floor((width * height) / 12000), 45);
+    const particleCount = Math.min(Math.floor((width * height) / 18000), 25);
     const particles: Particle[] = [];
 
     for (let i = 0; i < particleCount; i++) {
       particles.push({
         x: Math.random() * width,
         y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 0.6,
-        vy: (Math.random() - 0.5) * 0.6,
-        size: Math.random() * 2.5 + 1,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.5,
+        size: Math.random() * 2 + 1,
         color: colors[Math.floor(Math.random() * colors.length)],
-        alpha: Math.random() * 0.5 + 0.2,
+        alpha: Math.random() * 0.4 + 0.2,
       });
     }
 
@@ -51,55 +51,40 @@ export default function ReactBitsBackground({ className = '' }: { className?: st
 
     window.addEventListener('resize', handleResize);
 
-    // Draw loop
+    // Draw loop (Optimized 60FPS)
     const render = () => {
       ctx.clearRect(0, 0, width, height);
 
-      // Draw faint grid background
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-      ctx.lineWidth = 1;
-      const gridSize = 40;
-      for (let x = 0; x < width; x += gridSize) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, height);
-        ctx.stroke();
-      }
-      for (let y = 0; y < height; y += gridSize) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(width, y);
-        ctx.stroke();
-      }
-
-      // Draw particle connections (ReactBits constellation mesh)
+      // Draw particle connections (Fast distance check using squared distance)
+      const maxDistSq = 100 * 100;
       for (let i = 0; i < particles.length; i++) {
+        const p1 = particles[i];
         for (let j = i + 1; j < particles.length; j++) {
-          const dx = particles[i].x - particles[j].x;
-          const dy = particles[i].y - particles[j].y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
+          const p2 = particles[j];
+          const dx = p1.x - p2.x;
+          const dy = p1.y - p2.y;
+          const distSq = dx * dx + dy * dy;
 
-          if (dist < 110) {
+          if (distSq < maxDistSq) {
+            const alpha = 0.12 * (1 - distSq / maxDistSq);
             ctx.beginPath();
-            ctx.moveTo(particles[i].x, particles[i].y);
-            ctx.lineTo(particles[j].x, particles[j].y);
-            ctx.strokeStyle = `rgba(255, 255, 255, ${0.15 * (1 - dist / 110)})`;
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
             ctx.lineWidth = 0.8;
             ctx.stroke();
           }
         }
       }
 
-      // Render and update particles
-      particles.forEach((p) => {
+      // Render and update particles without expensive shadowBlur
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fillStyle = p.color;
         ctx.globalAlpha = p.alpha;
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = p.color;
         ctx.fill();
-        ctx.shadowBlur = 0;
         ctx.globalAlpha = 1.0;
 
         p.x += p.vx;
@@ -109,7 +94,7 @@ export default function ReactBitsBackground({ className = '' }: { className?: st
         if (p.x > width) p.x = 0;
         if (p.y < 0) p.y = height;
         if (p.y > height) p.y = 0;
-      });
+      }
 
       animationFrameId = requestAnimationFrame(render);
     };
@@ -123,7 +108,10 @@ export default function ReactBitsBackground({ className = '' }: { className?: st
   }, []);
 
   return (
-    <div className={`absolute inset-0 pointer-events-none overflow-hidden z-0 ${className}`}>
+    <div
+      className={`absolute inset-0 pointer-events-none overflow-hidden z-0 ${className}`}
+      style={{ transform: 'translateZ(0)', willChange: 'transform' }}
+    >
       <canvas ref={canvasRef} className="w-full h-full block" />
       
       {/* Floating ReactBits Geometric CSS Accents */}
